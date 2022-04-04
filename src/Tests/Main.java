@@ -1,7 +1,9 @@
 package Tests;
 
 import DualSpeciesIsolation.DualMRSWaveformStatistics;
+import DualSpeciesIsolation.SpecViolation;
 import DualSpeciesIsolation.WaveGrapher;
+import DualSpeciesIsolation.Waveform;
 
 public class Main {
 

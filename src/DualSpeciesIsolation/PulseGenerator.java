@@ -40,17 +40,16 @@ public class PulseGenerator{
 
 
     /**
-     *      *
-     *      * @param MOI1 The first Mass of Interest that is non-null and greater than 0
-     *      * @param MOI2 The second Mass of Interest that is non-null and greater than 0
-     *      * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
-     *      * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
-     *      * @param timeScale The time window for the wave in nanoseconds
-     *      * @param steps The number of steps plus 1 sets the number of data points
-     *      *              and therefore sets the resolution; steps must be greater than zero
-     *      * @param adjacencyBreak the minimal acceptable same bit sequence, ie. minimal length of bits in a Hi or Lo section.
-     *      *                       Must be grater than 1.
-     *      * @return List with: the total number of same bit segments that are smaller than or equal to the adjacency break,
+     * @param MOI1 The first Mass of Interest that is non-null and greater than 0
+     * @param MOI2 The second Mass of Interest that is non-null and greater than 0
+     * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
+     * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+     * @param timeScale The time window for the wave in nanoseconds
+     * @param steps The number of steps plus 1 sets the number of data points
+     *              and therefore sets the resolution; steps must be greater than zero
+     * @param adjacencyBreak the minimal acceptable same bit sequence, ie. minimal length of bits in a Hi or Lo section.
+     *                       Must be grater than 1.
+     * @return List with: the total number of same bit segments that are smaller than or equal to the adjacency break,
      * the number of switches, the maximum and minimum of the peaks ( max/min of first value), the On Time of Waveform,
      * the minimum peak width, the second minimum peak width,  the first occurrence of minimum and second minimum peak widths,
      * and the percentage normalization of OnTime.

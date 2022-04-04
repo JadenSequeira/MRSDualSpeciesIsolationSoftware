@@ -157,7 +157,7 @@ public class Waveform {
         ArrayList<Double> wave1Timings = new ArrayList<>(wave1.getTimings());
         ArrayList<Double> wave2Timings = new ArrayList<>(wave2.getTimings());
 
-        if (wave1Timings.size() != wave2Timings.size()){
+        if (wave1Timings.size() != wave2Timings.size() || !wave1Timings.get(0).equals(wave2Timings.get(0)) || wave1.getResolution() != wave2.getResolution()){
             throw new SpecViolation("Timings Do Not Match");
         }
 
@@ -315,37 +315,30 @@ public class Waveform {
     @Override
     public boolean equals(Object O) {
         if (O == this) {
-            System.out.println(1);
             return true;
         }
         if (!(O instanceof Waveform)) {
-            System.out.println(2);
             return false;
         }
 
         Waveform wave  = (Waveform) O;
 
         if (wave.getResolution() != this.Resolution){
-            System.out.println(3);
             return false;
         }
 
         if (wave.getWave().size() != this.getWave().size()){
-            System.out.println(4);
             return false;
         }
         if (wave.getTimings().size() != this.getTimings().size()){
-            System.out.println(5);
             return false;
         }
         if (this.checkRep() && wave.checkRep()){
-            System.out.println(6);
             return false;
         }
         int i = 0;
         while (this.getWave().get(i) == 0){
             i++;
-            System.out.println(i);
         }
 
         if (this.getWave().get(i) != wave.getWave().get(i)){
