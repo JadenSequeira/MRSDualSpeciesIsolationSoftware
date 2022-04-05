@@ -336,13 +336,13 @@ public class Waveform {
         if (this.checkRep() && wave.checkRep()){
             return false;
         }
-        int i = 0;
-        while (this.getWave().get(i) == 0){
-            i++;
-        }
 
-        if (this.getWave().get(i) != wave.getWave().get(i)){
-            return false;
+        ArrayList<Integer> thisWaveVals = new ArrayList<>(this.getWave());
+        ArrayList<Integer> otherWaveVals = new ArrayList<>(wave.getWave());
+        for (int  i = 0; i < thisWaveVals.size(); i++) {
+            if (thisWaveVals.get(i) != otherWaveVals.get(i)) {
+                return false;
+            }
         }
 
         return true;
@@ -351,11 +351,12 @@ public class Waveform {
     @Override
     public int hashCode()
     {
+        ArrayList<Integer> thisWaveVals = new ArrayList<>(this.getWave());
         int i = 0;
-        while (this.getWave().get(i) == 0){
+        while (thisWaveVals.get(i) == 0){
             i++;
         }
-        return 1;
+        return i;
     }
 
 }
