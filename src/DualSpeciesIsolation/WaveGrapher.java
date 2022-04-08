@@ -19,12 +19,8 @@ public class WaveGrapher {
      * and therefore sets the resolution; steps must be greater than zero
      * @param writer1 writes the waveform (timings and values) for the heavier mass to a specified file,
      *                not the same instance as writer2 or writer3
-     * @param writer2 writes the waveform (timings and values) for the lighter mass to a specified file,
-     *                not the same instance as writer1 or writer3
-     * @param writer3 writes the waveform (timings and values) for the AND combination of masses to a specified file,
-     *                not the same instance as writer1 or writer2
      */
-    public static void singleMassPairWaveGrapher(int Mass1, int Mass2, int timeScale, int steps, double MRSCycles, double Proportion, FileWriter writer1, FileWriter writer2, FileWriter writer3){
+    public static void singleMassPairWaveGrapher(int Mass1, int Mass2, int timeScale, int steps, double MRSCycles, double Proportion, FileWriter writer1/*, FileWriter writer2, FileWriter writer3*/){
 
         int heavyMass, lightMass;
 
@@ -46,22 +42,24 @@ public class WaveGrapher {
             try {
                 ArrayList<Double> testTimingsA = waveA.getTimings();
                 ArrayList<Integer> testValuesA = waveA.getWave();
-                ArrayList<Double> testTimingsB = waveB.getTimings();
+//                ArrayList<Double> testTimingsB = waveB.getTimings();
                 ArrayList<Integer> testValuesB = waveB.getWave();
-                ArrayList<Double> testTimingsC = mainWave.getTimings();
+//                ArrayList<Double> testTimingsC = mainWave.getTimings();
                 ArrayList<Integer> testValuesC = mainWave.getWave();
+
+                writer1.write("Ti   HM  LM  CM\n");
 
                 for (int i = 0; i < testTimingsA.size(); i++) {
 
-                    writer1.write(testTimingsA.get(i) + "    " + testValuesA.get(i) + "\n");
-                    writer2.write(testTimingsB.get(i) + "    " + testValuesB.get(i) + "\n");
-                    writer3.write(testTimingsC.get(i) + "    " + testValuesC.get(i) + "\n");
+                    writer1.write(testTimingsA.get(i) + "   " + testValuesA.get(i) + "  " + testValuesB.get(i) + "  " + testValuesC.get(i)+ "\n");
+//                    writer2.write(testTimingsB.get(i) + "    " + testValuesB.get(i) + "\n");
+//                    writer3.write(testTimingsC.get(i) + "    " + testValuesC.get(i) + "\n");
 
 
                 }
                 writer1.close();
-                writer2.close();
-                writer3.close();
+//                writer2.close();
+//                writer3.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }

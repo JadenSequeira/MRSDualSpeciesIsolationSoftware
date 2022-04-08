@@ -21,23 +21,9 @@ public class DualMRSWaveformStatistics {
      * @param lowerBound smallest mass MRS waveform to start scan at; greater than 0
      * @param inputMax the Max mass MRS waveform, where the scan finishes; greater or equal to lowerBound
      * @param normOnly if Normalized On Times is the only wanted data
+     * @param writer1 file writer that is non-null and writes to a specified file
      */
-    public static void DualMRSMassScanner(int window, int lowerBound, int inputMax, double MRSCycles, double proportional, int adjacencyBreak, boolean normOnly) {
-
-        Scanner a = new Scanner(System.in);
-        System.out.println("Please enter file name and location (ie: C:/Users/) :  ");
-        String file = a.nextLine();
-        StringBuilder fileDestination = new StringBuilder();
-        fileDestination.append(file);
-
-        if(normOnly){
-            fileDestination.append("NormalizedOnTimes.txt");
-        }
-        else {
-            fileDestination.append("Data.txt");
-        }
-
-        String fileNameA = fileDestination.toString();
+    public static void DualMRSMassScanner(int window, int lowerBound, int inputMax, double MRSCycles, double proportional, int adjacencyBreak, boolean normOnly, FileWriter writer1) {
 
         int corecount = Runtime.getRuntime().availableProcessors();
         ExecutorService service = Executors.newFixedThreadPool(corecount);
@@ -49,7 +35,6 @@ public class DualMRSWaveformStatistics {
         int max = inputMax + 5;
 
         try {
-            FileWriter writer1 = new FileWriter(fileNameA);
             if(normOnly){
                 writer1.write("M1 M2 %C\n");
             }
