@@ -1,5 +1,8 @@
 package DualSpeciesIsolation;
 
+import javax.swing.JProgressBar;
+import javax.swing.JTextField;
+import java.awt.TextField;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -22,8 +25,10 @@ public class WriteFile {
      * @param secondSmallest the second smallest count of same adjacent values in the waveform; non-null and greater than zero; greater than the smallest count
      * @param normOnTime the normalized onTime for the MRS waveform
      * @param normOnly if Normalized On Times is the only wanted data
+     * @param field text field to display progress
+     * @param progBar progress bar to display end of task
      */
-    public static synchronized void writeToFile(FileWriter writerA, int mass1, int mass2, int indetPeak, int peak, int inclPeak, int max, int switches, int onTime, int minCount, int secondSmallest, int normOnTime, boolean normOnly){
+    public static synchronized void writeToFile(FileWriter writerA, int mass1, int mass2, int indetPeak, int peak, int inclPeak, int max, int switches, int onTime, int minCount, int secondSmallest, int normOnTime, boolean normOnly, JTextField field, JProgressBar progBar){
         try {
            if (mass1 <= (max-5) && mass2 <= (max-5)) {
                if(!normOnly) {
@@ -35,10 +40,11 @@ public class WriteFile {
                else{
                    writerA.write(mass1 + "  " + mass2 + "   " + normOnTime + "\n");
                }
-               System.out.println(mass1 + "   " + mass2);
+               field.setText(mass1 + "   " + mass2);
+
            }
            else{
-               System.out.println(mass1 + "   " + mass2 + "  No value Recorded");
+               field.setText(mass1 + "   " + mass2 + "  No value Recorded");
            }
 
 
@@ -47,7 +53,9 @@ public class WriteFile {
                 try{
                     TimeUnit.SECONDS.sleep(15);
                     writerA.close();
-                    System.exit(-1);
+                    //System.exit(-1);
+                    field.setText("Done!");
+                    progBar.setIndeterminate(false);
                 } catch (InterruptedException e){
                     e.printStackTrace();
                 }

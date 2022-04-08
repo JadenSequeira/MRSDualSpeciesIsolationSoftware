@@ -1,6 +1,8 @@
 package DualSpeciesIsolation;
 
 
+import javax.swing.JProgressBar;
+import javax.swing.JTextField;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
@@ -22,8 +24,10 @@ public class DualMRSWaveformStatistics {
      * @param inputMax the Max mass MRS waveform, where the scan finishes; greater or equal to lowerBound
      * @param normOnly if Normalized On Times is the only wanted data
      * @param writer1 file writer that is non-null and writes to a specified file
+     * @param field a textfield for displaying progress
+     * @param progBar a progress bar for displaying the end of task
      */
-    public static void DualMRSMassScanner(int window, int lowerBound, int inputMax, double MRSCycles, double proportional, int adjacencyBreak, boolean normOnly, FileWriter writer1) {
+    public static void DualMRSMassScanner(int window, int lowerBound, int inputMax, double MRSCycles, double proportional, int adjacencyBreak, boolean normOnly, FileWriter writer1, JTextField field, JProgressBar progBar) {
 
         int corecount = Runtime.getRuntime().availableProcessors();
         ExecutorService service = Executors.newFixedThreadPool(corecount);
@@ -44,7 +48,7 @@ public class DualMRSWaveformStatistics {
             for (int i = lowerBound; i <= upperBound; i++) {
                 for (int j = i; j <= upperBound; j++) {
                     if ((i <= max-5 && j <= max-5)||(i > (max-5) && j > (max-5))){
-                        service.execute(new Grapher(i, j, MRSCycles, proportional, PulseGenerator.getSuggestedTimeScale(j, MRSCycles, proportional), PulseGenerator.getSuggestedTimeScale(j, MRSCycles, proportional), adjacencyBreak, writer1, max, normOnly));
+                        service.execute(new Grapher(i, j, MRSCycles, proportional, PulseGenerator.getSuggestedTimeScale(j, MRSCycles, proportional), PulseGenerator.getSuggestedTimeScale(j, MRSCycles, proportional), adjacencyBreak, writer1, max, normOnly, field, progBar));
                         System.out.println(i + "   " + j);
                         counter++;
                         System.out.println(counter);

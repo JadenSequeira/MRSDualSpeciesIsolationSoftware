@@ -1,13 +1,7 @@
-package Tests;
-
-import DualSpeciesIsolation.DualMRSWaveformStatistics;
-import DualSpeciesIsolation.PulseGenerator;
-import DualSpeciesIsolation.WaveGrapher;
-import org.junit.jupiter.api.Test;
+package DualSpeciesIsolation;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -22,8 +16,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-//TODO: Fix Dual Species exit()
-//TODO: Add Loading Bar
 
 public class DualSpeciesMRSSim extends SwingWorker {
     private JTabbedPane tabbedPane1;
@@ -59,20 +51,15 @@ public class DualSpeciesMRSSim extends SwingWorker {
     private JTextField textField22;
     private JTextField textField23;
     private JButton generateButton2;
+    private JTextField textField24;
 
     public DualSpeciesMRSSim() {
-        //setContentPane(panel1);
-        //setModal(true);
 
         saveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 
                 if (e.getSource() == saveButton){
-
-                    //task = new Task();
-                    //task.addPropertyChangeListener(this);
-                    //task.execute();
 
                     JFileChooser fileChooser = new JFileChooser();
                     fileChooser.setDialogTitle("Specify a file to save");
@@ -102,16 +89,17 @@ public class DualSpeciesMRSSim extends SwingWorker {
                                 try {
 
                                     FileWriter writerA = new FileWriter(filePath + ".txt");
+                                    progressBar2.setIndeterminate(true);
                                     DualMRSWaveformStatistics
                                         .DualMRSMassScanner(window, minMass, maxMass, MRSCycles,
-                                            proportion, adjBreak, normOnly, writerA);
-                                    progressBar2.setIndeterminate(true); //TODO: Implement progress
+                                            proportion, adjBreak, normOnly, writerA, textField24, progressBar2);
+
                                     cancelButton.addActionListener(new ActionListener(){
 
                                         @Override
                                         public void actionPerformed(ActionEvent g) {
                                             if (g.getSource() == cancelButton){
-                                                //TODO: Implement stop if cancel or new save pressed
+                                                System.exit(0);
                                             }
                                         }
                                     });
@@ -300,6 +288,7 @@ public class DualSpeciesMRSSim extends SwingWorker {
                         File fileSave = fileChooser.getSelectedFile();
                         System.out.println("Save as: " + fileSave.getAbsolutePath());
                         String filePath = fileSave.getAbsolutePath();
+
 
 
                         try{

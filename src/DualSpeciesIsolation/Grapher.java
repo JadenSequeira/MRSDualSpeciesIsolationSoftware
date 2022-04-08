@@ -1,5 +1,7 @@
 package DualSpeciesIsolation;
 
+import javax.swing.JProgressBar;
+import javax.swing.JTextField;
 import java.io.FileWriter;
 
 class Grapher  implements Runnable{
@@ -54,6 +56,15 @@ class Grapher  implements Runnable{
      */
     private final boolean normOnly;
 
+    /**
+     * Textfield for writeFile
+     */
+    private final JTextField field;
+
+    /**
+     * Progress Barr for WriteFile
+     */
+    private final JProgressBar progBar;
 
     /**
      * @param i The first Mass of Interest that is non-null and greater than 0
@@ -65,8 +76,12 @@ class Grapher  implements Runnable{
      * and therefore sets the resolution; steps must be greater than zero
      * @param writerA writes mass pair data to specified file
      * @param max The maximum mass that can be used in the specified instance of Grapher
+     * @param adjacencyBreak minimum acceptable length for Hi/Lo segments
+     * @param normOnly if normalized on times are the only data requested
+     * @param field text field to display progress
+     * @param progBar a progress bar to display end of task
      */
-     public Grapher(int i, int j, double MRSCycles, double proportional, int timeScale, int steps, int adjacencyBreak, FileWriter writerA, int max, boolean normOnly){
+     public Grapher(int i, int j, double MRSCycles, double proportional, int timeScale, int steps, int adjacencyBreak, FileWriter writerA, int max, boolean normOnly, JTextField field, JProgressBar progBar){
          this.i = i;
          this.j = j;
          this.MRSCycles = MRSCycles;
@@ -77,6 +92,8 @@ class Grapher  implements Runnable{
          this.writerA = writerA;
          this.max = max;
          this.normOnly = normOnly;
+         this.field = field;
+         this.progBar = progBar;
      }
 
      @Override
@@ -90,7 +107,7 @@ class Grapher  implements Runnable{
 
 
          synchronized(this){
-             WriteFile.writeToFile(writerA,i,j,temp[2],temp[0],temp[3], max, temp[1], temp[4], temp[5], temp[6], temp[9], normOnly);
+             WriteFile.writeToFile(writerA,i,j,temp[2],temp[0],temp[3], max, temp[1], temp[4], temp[5], temp[6], temp[9], normOnly, field, progBar);
          }
      }
  }
