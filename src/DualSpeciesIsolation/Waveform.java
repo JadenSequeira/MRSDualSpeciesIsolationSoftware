@@ -74,11 +74,12 @@ public class Waveform {
      * @param steps The number of steps plus 1 sets the number of data points
      *              and therefore sets the resolution; greater than zero
      * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      */
     public Waveform(double MOI, double MRSCycles, int timeScale, int steps, double prop, double cycleCalib){
         timings = new ArrayList<>();
         Wave = new ArrayList<>(waveGenerator(MOI, MRSCycles, timeScale, steps, prop, cycleCalib));
-        Resolution = timings.get(1)-timings.get(0); //Change made
+        Resolution = timings.get(1)-timings.get(0);
     }
 
     /**
@@ -89,6 +90,7 @@ public class Waveform {
      *            and therefore sets the resolution; greater than zero
      * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
      * @param timeOn the time the MRS is ON in nanoseconds; greater than 0
+     * @param cycleCalibration time for 1 Cs 1333 cycle in ns; greater than zero
      */
     public Waveform(double MOI, int timeScale, int steps, double prop, double timeOn, double cycleCalibration){
         timings = new ArrayList<>();
@@ -223,6 +225,7 @@ public class Waveform {
      * @param steps The number of steps plus 1 sets the number of data points
      *             and therefore sets the resolution; greater than zero
      * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+     * @param cycleCalibrationTime time for 1 Cs 1333 cycle in ns; greater than zero
      * @return the list containing the digital signal in 0's and 1's, where each successive element represents the value
      * at a specific time (constant spacing)
      */
@@ -284,6 +287,7 @@ public class Waveform {
      * @param MOI Mass of Interest that is non zero and non negative
      * @param MRSCycles Number of MRS Cycles/duty cycles for the wave; non-zero and non-negative, <= 850
      * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+     * @param cycleCalibrationTime time for 1 Cs 1333 cycle in ns; greater than zero
      * @return the digital value of the wave; true represents Hi and false represents Lo
      */
     private Boolean waveFormula(double time, double MOI, double MRSCycles, double prop, Boolean extend, double cycleCalibrationTime){

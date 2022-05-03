@@ -19,6 +19,7 @@ public class WaveGrapher {
      * and therefore sets the resolution; steps must be greater than zero
      * @param writer1 writes the waveform (timings and values) for the heavier mass to a specified file,
      *                not the same instance as writer2 or writer3
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      */
     public static void singleMassPairWaveGrapher(double Mass1, double Mass2, int timeScale, int steps, double MRSCycles, double Proportion, FileWriter writer1, double cycleCalib){
 
@@ -64,6 +65,21 @@ public class WaveGrapher {
     }
 
 
+    /**
+     * Writes the values and timings for the MRS combination, Ion of Interest, and Specialised XOR combination mass waveforms
+     * to three separate files for graphing
+     * @param MOI1 The first Mass of Interest that is non-null and greater than 0
+     * @param MOI2 The second Mass of Interest that is non-null and greater than 0
+     * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
+     * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+     * @param timeScale The time window for the wave in nanoseconds
+     * @param steps The number of steps plus 1 sets the number of data points
+     * and therefore sets the resolution; steps must be greater than zero
+     * @param writer1 writes the waveform (timings and values) for the heavier mass to a specified file,
+     *                not the same instance as writer2 or writer3
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
+     * @param IOI Ion of Interest; greater than zero
+     */
     public static void singleIOIPairWaveGrapher(double MOI1, double MOI2, double IOI, int timeScale, int steps, double MRSCycles, double prop, FileWriter writer1, double cycleCalib){
         double heavyMass;
         double lightMass;
@@ -133,6 +149,7 @@ public class WaveGrapher {
      * @param timeScale The time window for the wave in nanoseconds
      * @param steps The number of steps plus 1 sets the number of data points
      * and therefore sets the resolution; steps must be greater than zero
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      * @param writerA writes the adjacent lengths in order of occurrence to a specified file
      */
     public static void checkAdjLengths(double Mass1, double Mass2, int timeScale, int steps, double MRSCycles, double Proportion, FileWriter writerA, double cycleCalib){
@@ -145,6 +162,19 @@ public class WaveGrapher {
         }
     }
 
+
+    /**
+     * @param Mass1 The first Mass of Interest that is non-null and greater than 0
+     * @param Mass2 The second Mass of Interest that is non-null and greater than 0
+     * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
+     * @param Proportion the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+     * @param timeScale The time window for the wave in nanoseconds
+     * @param steps The number of steps plus 1 sets the number of data points
+     * and therefore sets the resolution; steps must be greater than zero
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
+     * @param writerA writes the adjacent lengths in order of occurrence to a specified file
+     * @param IOI Ion of Interest; greater than zero
+     */
     public static void checkIOIAdjLengths(double Mass1, double Mass2, double IOI, int timeScale, int steps, double MRSCycles, double Proportion, FileWriter writerA, double cycleCalib){
         ArrayList<Integer> lengths = new ArrayList<>(PulseGenerator.adjacentIOILengths(Mass1, Mass2, IOI, MRSCycles, Proportion, timeScale, steps, cycleCalib));
         try {
@@ -181,6 +211,7 @@ public class WaveGrapher {
      * @param steps The number of steps plus 1 sets the number of data points
      * and therefore sets the resolution; steps must be greater than zero
      * @param writer1 writes the values of interest to a file for graphing//fft/dft usage
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      */
     public static void writeValuesOfInterest(double mass1, double mass2, double MRSCycles, int timeScale, int steps, double prop, FileWriter writer1, double cycleCalib){
         int timeSum; //timeSum uses nanoseconds only
@@ -242,6 +273,7 @@ public class WaveGrapher {
      *              and therefore sets the resolution; steps must be greater than zero
      * @param adjBreak the minimum number of same adjacent values that will not have their
      *                 time value recorded to be used a point for difference calculation
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      * @return a list of time differences between adjacency sequences that have adjacent counts
      *         below the adjBreak threshold
      */
@@ -319,6 +351,7 @@ public class WaveGrapher {
      * @param timeScale The time window for the wave in nanoseconds
      * @param adjBreak the minimum number of same adjacent values that will not have their
      *                 time value recorded to be used a point for difference calculation
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      */
     public static void graphGenerator(int startMass, int endMass, double MRSCycles, int timeScale, double prop, int adjBreak, double cycleCalib) {
 
@@ -350,6 +383,7 @@ public class WaveGrapher {
      * @param MOI2 The second Mass of Interest that is non-null and greater than 0
      * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
      * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      * @return the Normalized On Time for the Mass pair MRS waveform
      */
     public static int getNormOnTime(double MOI1, double MOI2, double MRSCycles, double prop, double cycleCalib){

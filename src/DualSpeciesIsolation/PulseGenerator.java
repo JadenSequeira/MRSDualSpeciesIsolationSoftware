@@ -1,7 +1,7 @@
 package DualSpeciesIsolation;
 
 import java.util.ArrayList;
-
+import java.util.List;
 
 
 public class PulseGenerator{
@@ -10,6 +10,7 @@ public class PulseGenerator{
      * @param mass mass of interest for overall timeScale that is non-null and greater than 0
      * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
      * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      * @return the suggested timeScale setting
      */
     public static int getSuggestedTimeScale(double mass, double MRSCycles, double prop, double cycleCalib){
@@ -25,6 +26,7 @@ public class PulseGenerator{
      * @param mass The Mass of Interest that is non-null and greater than 0
      * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
      * @param proportion the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      * @return the expected total OnTime of the MRS waveform for the specified mass
      */
     public static int normFactor(double mass, double MRSCycles, double proportion, double cycleCalib){
@@ -45,6 +47,7 @@ public class PulseGenerator{
      *              and therefore sets the resolution; steps must be greater than zero
      * @param adjacencyBreak the minimal acceptable same bit sequence, ie. minimal length of bits in a Hi or Lo section.
      *                       Must be grater than 1.
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      * @return List with: the total number of same bit segments that are smaller than or equal to the adjacency break,
      * the number of switches, the maximum and minimum of the peaks ( max/min of first value), the On Time of Waveform,
      * the minimum peak width, the second minimum peak width,  the first occurrence of minimum and second minimum peak widths,
@@ -202,6 +205,7 @@ public class PulseGenerator{
      * @param timeScale The time window for the wave in nanoseconds
      * @param steps The number of steps plus 1 sets the number of data points
      *              and therefore sets the resolution; steps must be greater than zero
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      * @return a list of the counts of each adjacent segment of same bits in the wave
      */
     public static ArrayList<Integer> adjacentLengths( double MOI1, double MOI2, double MRSCycles, double prop, int timeScale, int steps, double cycleCalib){
@@ -258,15 +262,18 @@ public class PulseGenerator{
     }
 
 
-
-
-
-
-
-
-
-
-
+    /**
+     * @param MOI1 The first Mass of Interest that is non-null and greater than 0
+     * @param MOI2 The second Mass of Interest that is non-null and greater than 0
+     * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
+     * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+     * @param timeScale The time window for the wave in nanoseconds
+     * @param steps The number of steps plus 1 sets the number of data points
+     *              and therefore sets the resolution; steps must be greater than zero
+     * @param IOI Ion of Interest; greater than zero
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
+     * @return total time when IOI is Lo and combination waveform of MOI 1 and MOI 2 is Hi (in ns)
+     */
     public static int IOIWaveformOnTime( double MOI1, double MOI2, double IOI, double MRSCycles, double prop, int timeScale, int steps, double cycleCalib){
 
         int OnTime = 0;
@@ -312,11 +319,19 @@ public class PulseGenerator{
     }
 
 
-
-
-
-
-
+    /**
+     * @param MOI1 The first Mass of Interest that is non-null and greater than 0
+     * @param MOI2 The second Mass of Interest that is non-null and greater than 0
+     * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
+     * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+     * @param timeScale The time window for the wave in nanoseconds
+     * @param steps The number of steps plus 1 sets the number of data points
+     *              and therefore sets the resolution; steps must be greater than zero
+     * @param IOI Ion of Interest; greater than zero
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
+     * @return list of all segment lengths for specialised XOR combination of dual/single
+     *         MRS waveform and IOI MRS waveform
+     */
     public static ArrayList<Integer> adjacentIOILengths( double MOI1, double MOI2, double IOI, double MRSCycles, double prop, int timeScale, int steps, double cycleCalib){
 
         double heavyMass;
@@ -373,6 +388,67 @@ public class PulseGenerator{
 
         }
     }
+
+
+
+//TODO:Fix + Test
+    public static ArrayList<List<Integer>> SingleMRSdeltaTPairs(double Mass1, double IOI, double MRSCycles, double Proportion, double cycleCalib){
+
+        ArrayList<List<Integer>> MRSdeltaTPairs = new ArrayList<List<Integer>>();
+        int deltaT;
+        double time = 0;
+        int index = 0;
+
+
+        ArrayList<Double> MRSEnds = new ArrayList<>(getSingleMRSEnds(Mass1,MRSCycles,Proportion, cycleCalib));
+        ArrayList<Integer> adjLengths = new ArrayList<>(adjacentIOILengths(Mass1, Mass1, IOI, MRSCycles, Proportion, getSuggestedTimeScale(Mass1, MRSCycles,
+            Proportion, cycleCalib), getSuggestedTimeScale(Mass1, MRSCycles,
+            Proportion, cycleCalib), cycleCalib));
+
+        for (int i = 0; i < adjLengths.size(); i += 2){
+            time += adjLengths.get(i);
+            time += adjLengths.get(i+1);
+            deltaT = adjLengths.get(i+1);
+            ArrayList<Integer> temp = new ArrayList<>();
+
+            while (time > MRSEnds.get(index)){
+                index++;
+            }
+            if (time <= MRSEnds.get(index)){
+                temp.add((index+1)/2);
+                temp.add(deltaT);
+                MRSdeltaTPairs.add(temp);
+            }
+
+
+        }
+
+        return MRSdeltaTPairs;
+    }
+
+
+    private static ArrayList<Double> getSingleMRSEnds(double Mass1, double MRSCycles, double Proportion, double cycleCalib){
+
+        ArrayList<Double> MRSEnds = new ArrayList<>();
+        double time = 0;
+        double cycleCalibration = cycleCalib*java.lang.Math.sqrt((Mass1/132.905));
+        double timeDelay = 5*(int)((((32800)*java.lang.Math.sqrt((Mass1/132.905))) - (5*(int)((Proportion*cycleCalibration/2)/5)/2))/5);
+        time += timeDelay;
+
+        for(double i = 0.5; i <= MRSCycles; i += 0.5){
+
+            time += 5*(int)((Proportion*cycleCalibration/2)/5);
+            time += 5*(int)(((1-Proportion)*cycleCalibration/2)/5);
+            MRSEnds.add(time);
+        }
+
+        return new ArrayList<>(MRSEnds);
+
+    }
+
+
+
+
 }
 
 

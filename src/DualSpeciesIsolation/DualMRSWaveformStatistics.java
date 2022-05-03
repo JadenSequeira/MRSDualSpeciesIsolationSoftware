@@ -26,6 +26,7 @@ public class DualMRSWaveformStatistics {
      * @param writer1 file writer that is non-null and writes to a specified file
      * @param field a textfield for displaying progress
      * @param progBar a progress bar for displaying the end of task
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      */
     public static void DualMRSMassScanner(int window, int lowerBound, int inputMax, double MRSCycles, double proportional, int adjacencyBreak, boolean normOnly, FileWriter writer1, JTextField field, JProgressBar progBar, double cycleCalib) {
 

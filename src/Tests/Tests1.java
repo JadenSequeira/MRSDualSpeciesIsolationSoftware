@@ -2,15 +2,12 @@ package Tests;
 
 import DualSpeciesIsolation.PulseGenerator;
 import DualSpeciesIsolation.RepresentationViolation;
-import DualSpeciesIsolation.WaveGrapher;
 import DualSpeciesIsolation.Waveform;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.lang.System.exit;
 
 
 public class Tests1 {
@@ -336,6 +333,14 @@ public class Tests1 {
 
         Assertions.assertEquals(0, a);
     }
+
+//    public static void main(String[] args){
+//        ArrayList<Double> a = getSingleMRSEnds(85, 30, 0.4, 22682.5);
+//        System.out.println(a.size());
+//        for(Double e: a){
+//            System.out.println(e);
+//        }
+//    }
 
 
 }
