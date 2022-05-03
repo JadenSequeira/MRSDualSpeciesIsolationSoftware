@@ -27,7 +27,7 @@ public class DualMRSWaveformStatistics {
      * @param field a textfield for displaying progress
      * @param progBar a progress bar for displaying the end of task
      */
-    public static void DualMRSMassScanner(int window, int lowerBound, int inputMax, double MRSCycles, double proportional, int adjacencyBreak, boolean normOnly, FileWriter writer1, JTextField field, JProgressBar progBar) {
+    public static void DualMRSMassScanner(int window, int lowerBound, int inputMax, double MRSCycles, double proportional, int adjacencyBreak, boolean normOnly, FileWriter writer1, JTextField field, JProgressBar progBar, double cycleCalib) {
 
         int corecount = Runtime.getRuntime().availableProcessors();
         ExecutorService service = Executors.newFixedThreadPool(corecount);
@@ -48,7 +48,7 @@ public class DualMRSWaveformStatistics {
             for (int i = lowerBound; i <= upperBound; i++) {
                 for (int j = i; j <= upperBound; j++) {
                     if ((i <= max-5 && j <= max-5)||(i > (max-5) && j > (max-5))){
-                        service.execute(new Grapher(i, j, MRSCycles, proportional, PulseGenerator.getSuggestedTimeScale(j, MRSCycles, proportional), PulseGenerator.getSuggestedTimeScale(j, MRSCycles, proportional), adjacencyBreak, writer1, max, normOnly, field, progBar));
+                        service.execute(new Grapher(i, j, MRSCycles, proportional, PulseGenerator.getSuggestedTimeScale(j, MRSCycles, proportional, cycleCalib), PulseGenerator.getSuggestedTimeScale(j, MRSCycles, proportional, cycleCalib), adjacencyBreak, writer1, max, normOnly, field, progBar, cycleCalib));
                         System.out.println(i + "   " + j);
                         counter++;
                         System.out.println(counter);

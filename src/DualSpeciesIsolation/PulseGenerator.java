@@ -7,20 +7,15 @@ import java.util.ArrayList;
 public class PulseGenerator{
 
     /**
-     * Time in nanoseconds for 1 Cs cycle; used as a calibrant
-     */
-    private final static double cesiumCycle = 22682.5; //in nanoseconds
-
-    /**
      * @param mass mass of interest for overall timeScale that is non-null and greater than 0
      * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
      * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
      * @return the suggested timeScale setting
      */
-    public static int getSuggestedTimeScale(int mass, double MRSCycles, double prop){
+    public static int getSuggestedTimeScale(double mass, double MRSCycles, double prop, double cycleCalib){
 
-        double timeOn = cesiumCycle*java.lang.Math.sqrt((mass/132.905))*MRSCycles;
-        double timeDelay = 5*(int)((((32800)*java.lang.Math.sqrt((mass/132.905))) - (5*(int)((prop*cesiumCycle*java.lang.Math.sqrt((mass/132.905))/2)/5)/2))/5);
+        double timeOn = cycleCalib*java.lang.Math.sqrt((mass/132.905))*MRSCycles;
+        double timeDelay = 5*(int)((((32800)*java.lang.Math.sqrt((mass/132.905))) - (5*(int)((prop*cycleCalib*java.lang.Math.sqrt((mass/132.905))/2)/5)/2))/5);
 
         return (int) (timeOn + timeDelay + (timeOn/MRSCycles));
     }
@@ -32,9 +27,9 @@ public class PulseGenerator{
      * @param proportion the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
      * @return the expected total OnTime of the MRS waveform for the specified mass
      */
-    public static int normFactor(double mass, double MRSCycles, double proportion){
+    public static int normFactor(double mass, double MRSCycles, double proportion, double cycleCalib){
 
-        return (int) ((5*((int)(((1-proportion)*cesiumCycle*java.lang.Math.sqrt((mass/132.905))/2)/5)) - 1)*(MRSCycles*2));
+        return (int) ((5*((int)(((1-proportion)*cycleCalib*java.lang.Math.sqrt((mass/132.905))/2)/5)) - 1)*(MRSCycles*2));
 
     }
 
@@ -55,7 +50,7 @@ public class PulseGenerator{
      * the minimum peak width, the second minimum peak width,  the first occurrence of minimum and second minimum peak widths,
      * and the percentage normalization of OnTime.
      */
-    public static int[] pulseScheme( double MOI1, double MOI2, double MRSCycles, double prop, int timeScale, int steps, int adjacencyBreak){
+    public static int[] pulseScheme( double MOI1, double MOI2, double MRSCycles, double prop, int timeScale, int steps, int adjacencyBreak, double cycleCalib){
 
         double heavyMass;
         double lightMass;
@@ -85,12 +80,12 @@ public class PulseGenerator{
             lightMass = MOI1;
         }
 
-        totalTime = cesiumCycle*java.lang.Math.sqrt((heavyMass/132.905))*MRSCycles;
+        totalTime = cycleCalib*java.lang.Math.sqrt((heavyMass/132.905))*MRSCycles;
 
-        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop);
-        Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime);
+        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib);
+        Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime, cycleCalib);
         try {
-            Waveform mainWave = new Waveform(waveA, waveB);
+            Waveform mainWave = new Waveform(waveA, waveB, false);
             ArrayList<Integer> bitList = mainWave.getWave();
 
 
@@ -183,7 +178,7 @@ public class PulseGenerator{
         pkSwt[6] = secondSmallest;
         pkSwt[7] = minTime;
         pkSwt[8] = secondMinTime;
-        pkSwt[9] = (int)((double)onTime*100/normFactor(heavyMass,MRSCycles, prop));
+        pkSwt[9] = (int)((double)onTime*100/normFactor(heavyMass,MRSCycles, prop, cycleCalib));
 
 
 
@@ -209,7 +204,7 @@ public class PulseGenerator{
      *              and therefore sets the resolution; steps must be greater than zero
      * @return a list of the counts of each adjacent segment of same bits in the wave
      */
-    public static ArrayList<Integer> adjacentLengths( double MOI1, double MOI2, double MRSCycles, double prop, int timeScale, int steps){
+    public static ArrayList<Integer> adjacentLengths( double MOI1, double MOI2, double MRSCycles, double prop, int timeScale, int steps, double cycleCalib){
 
         double heavyMass;
         double lightMass;
@@ -229,12 +224,12 @@ public class PulseGenerator{
             lightMass = MOI1;
         }
 
-        totalTime = cesiumCycle*java.lang.Math.sqrt((heavyMass/132.905))*MRSCycles;
+        totalTime = cycleCalib*java.lang.Math.sqrt((heavyMass/132.905))*MRSCycles;
 
-        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop);
-        Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime);
+        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib);
+        Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime,cycleCalib);
         try{
-            Waveform mainWave = new Waveform(waveA, waveB);
+            Waveform mainWave = new Waveform(waveA, waveB, false);
             ArrayList<Integer> bitList = mainWave.getWave();
 
 
@@ -261,9 +256,124 @@ public class PulseGenerator{
             return new ArrayList<>(adjCounts);
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+    public static int IOIWaveformOnTime( double MOI1, double MOI2, double IOI, double MRSCycles, double prop, int timeScale, int steps, double cycleCalib){
+
+        int OnTime = 0;
+        double heavyMass;
+        double lightMass;
+        double totalTime;
+
+        if (MOI1 > MOI2){
+            heavyMass = MOI1;
+            lightMass = MOI2;
+        }
+        else{
+            heavyMass = MOI2;
+            lightMass = MOI1;
+        }
+
+
+        totalTime = cycleCalib*java.lang.Math.sqrt((heavyMass/132.905))*MRSCycles;
+
+        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib);
+        Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime,cycleCalib);
+        Waveform waveIOI = new Waveform(IOI, timeScale, steps, prop, totalTime, cycleCalib);
+
+        try {
+            Waveform mainWave = new Waveform(waveA, waveB, false);
+            Waveform finalWave = new Waveform(mainWave, waveIOI, true);
+            ArrayList<Integer> bitList = finalWave.getWave();
+
+            for (int i = 0; i < bitList.size(); i++){
+                if (bitList.get(i) == 1){
+                    OnTime++;
+                }
+            }
+
+        } catch (SpecViolation e){
+
+            e.printStackTrace();
+
+        }
+
+        return OnTime;
+
+    }
+
+
+
+
+
+
+
+    public static ArrayList<Integer> adjacentIOILengths( double MOI1, double MOI2, double IOI, double MRSCycles, double prop, int timeScale, int steps, double cycleCalib){
+
+        double heavyMass;
+        double lightMass;
+        int counter;
+        int value;
+        double totalTime;
+
+        ArrayList<Integer> adjCounts = new ArrayList<>();
+
+
+        if (MOI1 > MOI2){
+            heavyMass = MOI1;
+            lightMass = MOI2;
+        }
+        else{
+            heavyMass = MOI2;
+            lightMass = MOI1;
+        }
+
+        totalTime = cycleCalib*java.lang.Math.sqrt((heavyMass/132.905))*MRSCycles;
+
+        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib);
+        Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime,cycleCalib);
+        Waveform waveIOI = new Waveform(IOI, timeScale, steps, prop, totalTime, cycleCalib);
+
+        try {
+            Waveform mainWave = new Waveform(waveA, waveB, false);
+            Waveform finalWave = new Waveform(mainWave, waveIOI, true);
+            ArrayList<Integer> bitList = finalWave.getWave();
+
+
+            counter = 1;
+            value = bitList.get(0);
+            for(int i = 0; i < bitList.size()-1; i++){
+
+                if (bitList.get(i+1) == value){
+                    counter++;
+                }
+                else{
+
+                    adjCounts.add(counter);
+                    counter = 1;
+                    value = bitList.get(i+1);
+
+                }
+            }
+
+        }catch (SpecViolation e){
+            e.printStackTrace();
+        } finally {
+
+            return new ArrayList<>(adjCounts);
+
+        }
+    }
 }
-
-
 
 
 

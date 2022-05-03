@@ -1,5 +1,7 @@
 package DualSpeciesIsolation;
 
+import jdk.jfr.FlightRecorder;
+
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
@@ -52,6 +54,21 @@ public class DualSpeciesMRSSim extends SwingWorker {
     private JTextField textField23;
     private JButton generateButton2;
     private JTextField textField24;
+    private JTextField textField25;
+    private JTextField textField26;
+    private JTextField textField27;
+    private JTextField textField28;
+    private JTextField textField29;
+    private JTextField textField30;
+    private JTextField textField31;
+    private JTextField textField32;
+    private JTextField textField33;
+    private JTextField textField34;
+    private JTextField textField35;
+    private JButton calculateButton1;
+    private JTextField textField36;
+    private JTextField textField37;
+    private JTextField textField38;
 
     public DualSpeciesMRSSim() {
 
@@ -79,7 +96,8 @@ public class DualSpeciesMRSSim extends SwingWorker {
                             double proportion = Double.parseDouble(textField6.getText());
                             double MRSCycles = Double.parseDouble(textField7.getText());
                             int adjBreak = Integer.parseInt(textField5.getText());
-                            if (maxMass-minMass >= window && minMass > 0 && window > 0 && MRSCycles > 0 && proportion > 0 && proportion <= 1 && adjBreak > 0) {
+                            double cycleCalib = Double.parseDouble(textField26.getText());
+                            if (maxMass-minMass >= window && minMass > 0 && window > 0 && MRSCycles > 0 && proportion > 0 && proportion <= 1 && adjBreak > 0 && cycleCalib > 0) {
                                 Boolean normOnly = false;
 
                                 if (normOnTimesOnlyCheckBox.isSelected()) {
@@ -92,7 +110,7 @@ public class DualSpeciesMRSSim extends SwingWorker {
                                     progressBar2.setIndeterminate(true);
                                     DualMRSWaveformStatistics
                                         .DualMRSMassScanner(window, minMass, maxMass, MRSCycles,
-                                            proportion, adjBreak, normOnly, writerA, textField24, progressBar2);
+                                            proportion, adjBreak, normOnly, writerA, textField24, progressBar2, cycleCalib);
 
                                     cancelButton.addActionListener(new ActionListener(){
 
@@ -132,10 +150,11 @@ public class DualSpeciesMRSSim extends SwingWorker {
                         double Mass2 = Double.parseDouble(textField10.getText());
                         double proportion = Double.parseDouble(textField11.getText());
                         double MRSCycles = Double.parseDouble(textField9.getText());
+                        double cycleCalib = Double.parseDouble(textField25.getText());
 
-                        if (Mass1 > 0 && Mass2 > 0 && proportion <=1 && proportion >= 0 && MRSCycles > 0) {
+                        if (Mass1 > 0 && Mass2 > 0 && proportion <=1 && proportion >= 0 && MRSCycles > 0 && cycleCalib > 0) {
                             textField2.setText((String) (
-                                WaveGrapher.getNormOnTime(Mass1, Mass2, MRSCycles, proportion) +
+                                WaveGrapher.getNormOnTime(Mass1, Mass2, MRSCycles, proportion, cycleCalib) +
                                     "  "));
                         }
                         else{
@@ -168,12 +187,18 @@ public class DualSpeciesMRSSim extends SwingWorker {
 
 
                      try{
-                        int Mass1 = Integer.parseInt(textField12.getText());
-                        int Mass2 = Integer.parseInt(textField15.getText());
+                        double Mass1 = Double.parseDouble(textField12.getText());
+                        double Mass2 = Double.parseDouble(textField15.getText());
                         double proportion = Double.parseDouble(textField14.getText());
                         double MRSCycles = Double.parseDouble(textField13.getText());
+                         double cycleCalib = Double.parseDouble(textField27.getText());
+                         double IOI = 0;
+                         if (!textField38.getText().isEmpty()){
+                             IOI = Double.parseDouble(textField38.getText());
+                         }
 
-                        int heavyMass;
+
+                         double heavyMass;
 
                         if (Mass1 > Mass2){
                             heavyMass = Mass1;
@@ -182,16 +207,33 @@ public class DualSpeciesMRSSim extends SwingWorker {
                             heavyMass = Mass2;
                         }
 
-                         if (Mass1 > 0 && Mass2 > 0 && proportion <=1 && proportion >= 0 && MRSCycles > 0) {
+                         if (Mass1 > 0 && Mass2 > 0 && proportion <=1 && proportion >= 0 && MRSCycles > 0 && cycleCalib > 0 && IOI >= 0) {
                              try {
                                  FileWriter writerA = new FileWriter(filePath+ ".txt");
 
 
-                                 WaveGrapher.checkAdjLengths(Mass1, Mass2, PulseGenerator
-                                         .getSuggestedTimeScale(heavyMass, MRSCycles, proportion),
-                                     PulseGenerator
-                                         .getSuggestedTimeScale(heavyMass, MRSCycles, proportion),
-                                     MRSCycles, proportion, writerA);
+                                 if (textField38.getText().isEmpty() || Double.parseDouble(textField38.getText()) == 0) {
+                                     WaveGrapher.checkAdjLengths(Mass1, Mass2, PulseGenerator
+                                             .getSuggestedTimeScale(heavyMass, MRSCycles, proportion,
+                                                 cycleCalib),
+                                         PulseGenerator
+                                             .getSuggestedTimeScale(heavyMass, MRSCycles,
+                                                 proportion, cycleCalib),
+                                         MRSCycles, proportion, writerA, cycleCalib);
+                                 }
+                                 else{
+
+                                     IOI = Double.parseDouble(textField38.getText());
+
+                                     WaveGrapher.checkIOIAdjLengths(Mass1, Mass2, IOI, PulseGenerator
+                                             .getSuggestedTimeScale(heavyMass, MRSCycles, proportion,
+                                                 cycleCalib),
+                                         PulseGenerator
+                                             .getSuggestedTimeScale(heavyMass, MRSCycles,
+                                                 proportion, cycleCalib),
+                                         MRSCycles, proportion, writerA, cycleCalib);
+
+                                 }
                              } catch (IOException p) {
                                  p.printStackTrace();
                              }
@@ -229,12 +271,13 @@ public class DualSpeciesMRSSim extends SwingWorker {
 
 
                         try{
-                            int Mass1 = Integer.parseInt(textField16.getText());
-                            int Mass2 = Integer.parseInt(textField17.getText());
+                            double Mass1 = Double.parseDouble(textField16.getText());
+                            double Mass2 = Double.parseDouble(textField17.getText());
                             double proportion = Double.parseDouble(textField18.getText());
                             double MRSCycles = Double.parseDouble(textField19.getText());
+                            double cycleCalib = Double.parseDouble(textField28.getText());
 
-                            int heavyMass;
+                            double heavyMass;
 
                             if (Mass1 > Mass2){
                                 heavyMass = Mass1;
@@ -243,16 +286,16 @@ public class DualSpeciesMRSSim extends SwingWorker {
                                 heavyMass = Mass2;
                             }
 
-                            if (Mass1 > 0 && Mass2 > 0 && proportion <=1 && proportion >= 0 && MRSCycles > 0) {
+                            if (Mass1 > 0 && Mass2 > 0 && proportion <=1 && proportion >= 0 && MRSCycles > 0 && cycleCalib > 0) {
                                 try {
                                     FileWriter writerA = new FileWriter(filePath+ ".txt");
 
 
                                     WaveGrapher.writeValuesOfInterest(Mass1, Mass2,MRSCycles, PulseGenerator
-                                            .getSuggestedTimeScale(heavyMass, MRSCycles, proportion),
+                                            .getSuggestedTimeScale(heavyMass, MRSCycles, proportion, cycleCalib),
                                         PulseGenerator
-                                            .getSuggestedTimeScale(heavyMass, MRSCycles, proportion),
-                                        proportion, writerA);
+                                            .getSuggestedTimeScale(heavyMass, MRSCycles, proportion, cycleCalib),
+                                        proportion, writerA, cycleCalib);
                                 } catch (IOException p) {
                                     p.printStackTrace();
                                 }
@@ -290,14 +333,19 @@ public class DualSpeciesMRSSim extends SwingWorker {
                         String filePath = fileSave.getAbsolutePath();
 
 
-
                         try{
-                            int Mass1 = Integer.parseInt(textField20.getText());
-                            int Mass2 = Integer.parseInt(textField21.getText());
+
+                            double Mass1 = Double.parseDouble(textField20.getText());
+                            double Mass2 = Double.parseDouble(textField21.getText());
                             double proportion = Double.parseDouble(textField22.getText());
                             double MRSCycles = Double.parseDouble(textField23.getText());
+                            double cycleCalib = Double.parseDouble(textField29.getText());
+                            double IOI = 0;
+                            if (!textField37.getText().isEmpty()){
+                                IOI = Double.parseDouble(textField37.getText());
+                            }
 
-                            int heavyMass;
+                            double heavyMass;
 
                             if (Mass1 > Mass2){
                                 heavyMass = Mass1;
@@ -306,16 +354,29 @@ public class DualSpeciesMRSSim extends SwingWorker {
                                 heavyMass = Mass2;
                             }
 
-                            if (Mass1 > 0 && Mass2 > 0 && proportion <=1 && proportion >= 0 && MRSCycles > 0) {
+                            if (Mass1 > 0 && Mass2 > 0 && proportion <=1 && proportion >= 0 && MRSCycles > 0 && cycleCalib > 0 &&  IOI >= 0) {
                                 try {
                                     FileWriter writerA = new FileWriter(filePath+ ".txt");
 
+                                    if (textField37.getText().isEmpty() || Double.parseDouble(textField37.getText()) == 0) {
+                                        WaveGrapher
+                                            .singleMassPairWaveGrapher(Mass1, Mass2, PulseGenerator
+                                                    .getSuggestedTimeScale(heavyMass, MRSCycles,
+                                                        proportion, cycleCalib),
+                                                PulseGenerator
+                                                    .getSuggestedTimeScale(heavyMass, MRSCycles,
+                                                        proportion, cycleCalib),
+                                                MRSCycles, proportion, writerA, cycleCalib);
+                                    } else{
 
-                                    WaveGrapher.singleMassPairWaveGrapher(Mass1, Mass2, PulseGenerator
-                                            .getSuggestedTimeScale(heavyMass, MRSCycles, proportion),
-                                        PulseGenerator
-                                            .getSuggestedTimeScale(heavyMass, MRSCycles, proportion),
-                                        MRSCycles, proportion, writerA);
+                                        IOI = Double.parseDouble(textField37.getText());
+                                        WaveGrapher.singleIOIPairWaveGrapher( Mass1, Mass2, IOI, PulseGenerator
+                                            .getSuggestedTimeScale(heavyMass, MRSCycles,
+                                                proportion, cycleCalib), PulseGenerator
+                                            .getSuggestedTimeScale(heavyMass, MRSCycles,
+                                                proportion, cycleCalib), MRSCycles, proportion, writerA, cycleCalib);
+
+                                    }
                                 } catch (IOException p) {
                                     p.printStackTrace();
                                 }
@@ -334,6 +395,48 @@ public class DualSpeciesMRSSim extends SwingWorker {
                 }
             }
         });
+        calculateButton1.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getSource() == calculateButton1){
+
+                    try {
+
+                        double Mass1 = Double.parseDouble(textField30.getText());
+                        double Mass2 = Double.parseDouble(textField31.getText());
+                        double IOI = Double.parseDouble(textField35.getText());
+                        double proportion = Double.parseDouble(textField32.getText());
+                        double MRSCycles = Double.parseDouble(textField33.getText());
+                        double cycleCalib = Double.parseDouble(textField34.getText());
+
+                        double heavyMass;
+
+                        if (Mass1 > Mass2){
+                            heavyMass = Mass1;
+                        }
+                        else{
+                            heavyMass = Mass2;
+                        }
+
+                        if (Mass1 > 0 && Mass2 > 0 && proportion <=1 && proportion >= 0 && MRSCycles > 0 && cycleCalib > 0 && IOI > 0) {
+                            textField36.setText((String) (
+                                PulseGenerator.IOIWaveformOnTime(Mass1, Mass2, IOI, MRSCycles, proportion, PulseGenerator
+                                    .getSuggestedTimeScale(heavyMass, MRSCycles, proportion, cycleCalib),PulseGenerator
+                                    .getSuggestedTimeScale(heavyMass, MRSCycles, proportion, cycleCalib), cycleCalib) +
+                                    "  "));
+                        }
+                        else{
+                            JOptionPane.showMessageDialog(null,"Please ensure that all numbers are greater than 0 and the proportion is a decimal between 0 and 1.");
+                        }
+
+                    } catch (NumberFormatException f){
+                        f.printStackTrace();
+                        JOptionPane.showMessageDialog(null,"Please enter numbers only.");
+                    }
+
+                }
+            }
+        });
     }
 
     @Override
@@ -349,4 +452,5 @@ public class DualSpeciesMRSSim extends SwingWorker {
         frame.setVisible(true);
     }
 }
+
 

@@ -6,10 +6,6 @@ import java.util.List;
 
 public class Waveform {
 
-    /**
-     * Time in nanoseconds for 1 Cs cycle; used as a calibrant
-     */
-    private final static double cesiumCycle = 22682.5; //in nanoseconds
 
     /**
      * Waveform values (values are 0 or 1)
@@ -79,9 +75,9 @@ public class Waveform {
      *              and therefore sets the resolution; greater than zero
      * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
      */
-    public Waveform(double MOI, double MRSCycles, int timeScale, int steps, double prop){
+    public Waveform(double MOI, double MRSCycles, int timeScale, int steps, double prop, double cycleCalib){
         timings = new ArrayList<>();
-        Wave = new ArrayList<>(waveGenerator(MOI, MRSCycles, timeScale, steps, prop));
+        Wave = new ArrayList<>(waveGenerator(MOI, MRSCycles, timeScale, steps, prop, cycleCalib));
         Resolution = timings.get(1)-timings.get(0); //Change made
     }
 
@@ -94,10 +90,10 @@ public class Waveform {
      * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
      * @param timeOn the time the MRS is ON in nanoseconds; greater than 0
      */
-    public Waveform(double MOI, int timeScale, int steps, double prop, double timeOn){
+    public Waveform(double MOI, int timeScale, int steps, double prop, double timeOn, double cycleCalibration){
         timings = new ArrayList<>();
-        double MRSCycles = (timeOn/(cesiumCycle*java.lang.Math.sqrt((MOI/132.905))));
-        Wave = new ArrayList<>(waveGenerator(MOI, MRSCycles, timeScale, steps, prop));
+        double MRSCycles = (timeOn/(cycleCalibration*java.lang.Math.sqrt((MOI/132.905))));
+        Wave = new ArrayList<>(waveGenerator(MOI, MRSCycles, timeScale, steps, prop, cycleCalibration));
         Resolution = timings.get(1)-timings.get(0);
     }
 
@@ -150,32 +146,74 @@ public class Waveform {
      * wave 1 and wave 2 must be the same size with same timings for each value
      * @param wave1 wave that is non-null
      * @param wave2 wave that is non-null
-     * @throws SpecViolation if timings are not the same size
+     * @param XOR conducts a specialized XOR gate where the wave 1 is a combined MRS and wave 2 is an IOI MRS
+     * @throws SpecViolation if timings are not the same size for AND gate
      */
-    public Waveform( Waveform wave1, Waveform wave2) throws SpecViolation{
+    public Waveform( Waveform wave1, Waveform wave2, Boolean XOR) throws SpecViolation{
 
         ArrayList<Double> wave1Timings = new ArrayList<>(wave1.getTimings());
         ArrayList<Double> wave2Timings = new ArrayList<>(wave2.getTimings());
+        Boolean wave1Larger = false;
 
-        if (wave1Timings.size() != wave2Timings.size() || !wave1Timings.get(0).equals(wave2Timings.get(0)) || wave1.getResolution() != wave2.getResolution()){
-            throw new SpecViolation("Timings Do Not Match");
+        if (wave1Timings.size() >= wave2Timings.size()) {
+            this.timings = wave1.getTimings();
+            wave1Larger = true;
+        }
+        else{
+            this.timings = wave2.getTimings();
         }
 
-
-        this.timings = wave1.getTimings();
         ArrayList<Integer> waveA = new ArrayList<>(wave1.getWave());
         ArrayList<Integer> waveB = new ArrayList<>(wave2.getWave());
         this.Wave = new ArrayList<>();
 
-        for(int index = 0; index < waveA.size(); index++){
+        if (XOR){
+            if (!wave1Timings.get(0).equals(wave2Timings.get(0)) || wave1.getResolution() != wave2.getResolution()){
+                throw new SpecViolation("Timings Do Not Align");
+            }
 
-            this.Wave.add(waveA.get(index)&waveB.get(index));
+            int size;
+            if(wave1Larger){
+                size = wave2Timings.size();
+            } else{
+                size = wave1Timings.size();
+            }
 
+            for (int index = 0; index < size; index++) {
+                if (waveA.get(index) == 1 && waveB.get(index) == 0){
+                    this.Wave.add(1);
+                } else {
+                    this.Wave.add(0);
+                }
+            }
+
+            if(wave1Larger){
+                for (int i = size; i < wave1Timings.size(); i++){
+                    this.Wave.add(waveA.get(i));
+                }
+            } else {
+                for (int i = size; i < wave2Timings.size(); i++){
+                    this.Wave.add(0);
+                }
+            }
+        }
+        else {
+
+            if (wave1Timings.size() != wave2Timings.size() || !wave1Timings.get(0).equals(wave2Timings.get(0)) || wave1.getResolution() != wave2.getResolution()){
+                throw new SpecViolation("Timings Do Not Match");
+            }
+
+            for (int index = 0; index < waveA.size(); index++) {
+
+                this.Wave.add(waveA.get(index) & waveB.get(index));
+
+            }
         }
 
         this.Resolution = timings.get(1)-timings.get(0);
 
     }
+
 
     /**
      * Generates Digital DualSpeciesIsolation.Waveform
@@ -188,15 +226,15 @@ public class Waveform {
      * @return the list containing the digital signal in 0's and 1's, where each successive element represents the value
      * at a specific time (constant spacing)
      */
-    private ArrayList<Integer> waveGenerator(double MOI, double MRSCycles, double timeScale, double steps, double prop){
+    private ArrayList<Integer> waveGenerator(double MOI, double MRSCycles, double timeScale, double steps, double prop, double cycleCalibrationTime){
 
         ArrayList<Integer> wave = new ArrayList<>();
-        double cycleCalibration = cesiumCycle*java.lang.Math.sqrt((MOI/132.905));
+        double cycleCalibration = cycleCalibrationTime*java.lang.Math.sqrt((MOI/132.905));
         double timeOn = cycleCalibration*MRSCycles;
         double timeDelay = 5*(int)((((32800)*java.lang.Math.sqrt((MOI/132.905))) - (5*(int)((prop*cycleCalibration/2)/5)/2))/5);
         Boolean extend = false;
 
-        if (waveFormula(timeOn+timeDelay, MOI, MRSCycles, prop, false)){
+        if (waveFormula(timeOn+timeDelay, MOI, MRSCycles, prop, false, cycleCalibrationTime)){
             extend = true;
         }
 
@@ -206,7 +244,7 @@ public class Waveform {
 
 
 
-                if (waveFormula(i, MOI, MRSCycles, prop, false)) {
+                if (waveFormula(i, MOI, MRSCycles, prop, false, cycleCalibrationTime)) {
                     wave.add(1);
                 } else {
                     wave.add(0);
@@ -216,19 +254,19 @@ public class Waveform {
 
                 if (i < timeDelay + timeOn || i > timeDelay + timeOn + 5*(int)(((1-prop)*cycleCalibration/2)/5)){
 
-                    if (waveFormula(i, MOI, MRSCycles, prop, false)) {
+                    if (waveFormula(i, MOI, MRSCycles, prop, false, cycleCalibrationTime)) {
                         wave.add(1);
                     } else {
                         wave.add(0);
                     }
 
                 }
-                else if (i > timeDelay + timeOn && !waveFormula(i, MOI, MRSCycles, prop, extend)){
+                else if (i > timeDelay + timeOn && !waveFormula(i, MOI, MRSCycles, prop, extend, cycleCalibrationTime)){
                     extend = false;
                     wave.add(0);
                 }
                 else{
-                    if (waveFormula(i, MOI, MRSCycles, prop, extend)) {
+                    if (waveFormula(i, MOI, MRSCycles, prop, extend, cycleCalibrationTime)) {
                         wave.add(1);
                     } else {
                         wave.add(0);
@@ -248,10 +286,10 @@ public class Waveform {
      * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
      * @return the digital value of the wave; true represents Hi and false represents Lo
      */
-    private Boolean waveFormula(double time, double MOI, double MRSCycles, double prop, Boolean extend){
+    private Boolean waveFormula(double time, double MOI, double MRSCycles, double prop, Boolean extend, double cycleCalibrationTime){
 
         double timeCounter = 0;
-        double cycleCalibration = cesiumCycle*java.lang.Math.sqrt((MOI/132.905));
+        double cycleCalibration = cycleCalibrationTime*java.lang.Math.sqrt((MOI/132.905));
         double timeOn = cycleCalibration*MRSCycles;
         double timeDelay = 5*(int)((((32800)*java.lang.Math.sqrt((MOI/132.905))) - (5*(int)((prop*cycleCalibration/2)/5)/2))/5);
 
@@ -360,3 +398,4 @@ public class Waveform {
     }
 
 }
+

@@ -67,6 +67,11 @@ class Grapher  implements Runnable{
     private final JProgressBar progBar;
 
     /**
+     * Cycle Time Calibration in ns
+     */
+    private final double cycleCalib;
+
+    /**
      * @param i The first Mass of Interest that is non-null and greater than 0
      * @param j The second Mass of Interest that is non-null and greater than 0
      * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
@@ -81,7 +86,7 @@ class Grapher  implements Runnable{
      * @param field text field to display progress
      * @param progBar a progress bar to display end of task
      */
-     public Grapher(int i, int j, double MRSCycles, double proportional, int timeScale, int steps, int adjacencyBreak, FileWriter writerA, int max, boolean normOnly, JTextField field, JProgressBar progBar){
+     public Grapher(int i, int j, double MRSCycles, double proportional, int timeScale, int steps, int adjacencyBreak, FileWriter writerA, int max, boolean normOnly, JTextField field, JProgressBar progBar, double cycleCalib){
          this.i = i;
          this.j = j;
          this.MRSCycles = MRSCycles;
@@ -94,6 +99,7 @@ class Grapher  implements Runnable{
          this.normOnly = normOnly;
          this.field = field;
          this.progBar = progBar;
+         this.cycleCalib = cycleCalib;
      }
 
      @Override
@@ -103,7 +109,7 @@ class Grapher  implements Runnable{
      public void run() {
 
          int[] temp = PulseGenerator
-             .pulseScheme( i, j, MRSCycles, proportional, timeScale, steps, adjacencyBreak);
+             .pulseScheme( i, j, MRSCycles, proportional, timeScale, steps, adjacencyBreak, cycleCalib);
 
 
          synchronized(this){
