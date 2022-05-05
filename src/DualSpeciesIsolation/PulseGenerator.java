@@ -415,7 +415,7 @@ public class PulseGenerator{
                 index++;
             }
             if (time <= MRSEnds.get(index)){
-                temp.add((index+1)/2);
+                temp.add((index+1)*10/2);
                 temp.add(deltaT);
                 MRSdeltaTPairs.add(temp);
             }
@@ -423,7 +423,7 @@ public class PulseGenerator{
 
         }
 
-        return MRSdeltaTPairs;
+        return new ArrayList<>(MRSdeltaTPairs);
     }
 
 

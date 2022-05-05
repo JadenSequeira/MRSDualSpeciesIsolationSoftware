@@ -69,6 +69,7 @@ public class DualSpeciesMRSSim extends SwingWorker {
     private JTextField textField36;
     private JTextField textField37;
     private JTextField textField38;
+    private JButton generateButton3;
 
     public DualSpeciesMRSSim() {
 
@@ -434,6 +435,63 @@ public class DualSpeciesMRSSim extends SwingWorker {
                         JOptionPane.showMessageDialog(null,"Please enter numbers only.");
                     }
 
+                }
+            }
+        });
+        generateButton3.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getSource() == generateButton3){
+
+                    JFileChooser fileChooser = new JFileChooser();
+                    fileChooser.setDialogTitle("Specify a file to save");
+
+                    int selection = fileChooser.showSaveDialog(new JFrame());
+
+                    if (selection == JFileChooser.APPROVE_OPTION) {
+                        File fileSave = fileChooser.getSelectedFile();
+                        System.out.println("Save as: " + fileSave.getAbsolutePath());
+                        String filePath = fileSave.getAbsolutePath();
+
+
+                        try{
+                            double Mass1 = Double.parseDouble(textField30.getText());
+                            double Mass2 = Double.parseDouble(textField31.getText());
+                            double IOI = Double.parseDouble(textField35.getText());
+                            double proportion = Double.parseDouble(textField32.getText());
+                            double MRSCycles = Double.parseDouble(textField33.getText());
+                            double cycleCalib = Double.parseDouble(textField34.getText());
+
+                            double heavyMass;
+
+                            if (Mass1 > Mass2){
+                                heavyMass = Mass1;
+                            }
+                            else{
+                                heavyMass = Mass2;
+                            }
+
+                            if (Mass1 > 0 && Mass2 > 0 && proportion <=1 && proportion >= 0 && MRSCycles > 0 && cycleCalib > 0 && IOI > 0)  {
+                                try {
+                                    FileWriter writerA = new FileWriter(filePath+ ".txt");
+                                    WaveGrapher.writeMRSdeltaTPairs(heavyMass,IOI, MRSCycles,
+                                        proportion, cycleCalib, writerA);
+
+                                } catch (IOException p) {
+                                    p.printStackTrace();
+                                }
+                            }
+
+                            else{
+                                JOptionPane.showMessageDialog(null,"Please ensure that all numbers are greater than 0 and the proportion is a decimal between 0 and 1.");
+                            }
+
+                        } catch (NumberFormatException f){
+                            f.printStackTrace();
+                            JOptionPane.showMessageDialog(null,"Please enter numbers only.");
+                        }
+
+                    }
                 }
             }
         });

@@ -4,6 +4,7 @@ package DualSpeciesIsolation;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class WaveGrapher {
 
@@ -199,206 +200,222 @@ public class WaveGrapher {
     }
 
 
+    public static void writeMRSdeltaTPairs(double Mass1, double IOI, double MRSCycles, double Proportion, double cycleCalib, FileWriter writerA) throws IOException{
+        ArrayList<List<Integer>> data = PulseGenerator.SingleMRSdeltaTPairs(Mass1,IOI, MRSCycles,Proportion, cycleCalib);
+        int MRSCyc, deltaT;
+        writerA.write("MR   Dt\n");
 
-    /**
-     * Writes the values of interest of the AND combination waveform; the values of interest are the values
-     * without the left tail and right tails (the delay and the extended ending due to resolution)
-     * @param mass1 The first Mass of Interest that is non-null and greater than 0
-     * @param mass2 The second Mass of Interest that is non-null and greater than 0
-     * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
-     * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
-     * @param timeScale The time window for the wave in nanoseconds
-     * @param steps The number of steps plus 1 sets the number of data points
-     * and therefore sets the resolution; steps must be greater than zero
-     * @param writer1 writes the values of interest to a file for graphing//fft/dft usage
-     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
-     */
-    public static void writeValuesOfInterest(double mass1, double mass2, double MRSCycles, int timeScale, int steps, double prop, FileWriter writer1, double cycleCalib){
-        int timeSum; //timeSum uses nanoseconds only
-        int start;
-        Waveform waveA = new Waveform(mass1, MRSCycles, timeScale, steps, prop, cycleCalib);
-        Waveform waveB = new Waveform(mass2, timeScale, steps, prop, cycleCalib*java.lang.Math.sqrt((94/132.905))*50, cycleCalib);
+        for(int i = 0; i < data.size(); i++) {
+            for (int j = 0; j < data.get(i).size() - 1; j++) {
+                writerA.write(data.get(i).get(j)/10 + "." + data.get(i).get(j) % 10  + "    " + data.get(i).get(j+1) + "\n");
+            }
+        }
 
-        try {
-            Waveform mainWave = new Waveform(waveA, waveB, false);
+        writerA.close();
+    }
+
+
+
+            /**
+             * Writes the values of interest of the AND combination waveform; the values of interest are the values
+             * without the left tail and right tails (the delay and the extended ending due to resolution)
+             * @param mass1 The first Mass of Interest that is non-null and greater than 0
+             * @param mass2 The second Mass of Interest that is non-null and greater than 0
+             * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
+             * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+             * @param timeScale The time window for the wave in nanoseconds
+             * @param steps The number of steps plus 1 sets the number of data points
+             * and therefore sets the resolution; steps must be greater than zero
+             * @param writer1 writes the values of interest to a file for graphing//fft/dft usage
+             * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
+             */
+            public static void writeValuesOfInterest(double mass1, double mass2, double MRSCycles, int timeScale, int steps, double prop, FileWriter writer1, double cycleCalib){
+            int timeSum; //timeSum uses nanoseconds only
+            int start;
+            Waveform waveA = new Waveform(mass1, MRSCycles, timeScale, steps, prop, cycleCalib);
+            Waveform waveB = new Waveform(mass2, timeScale, steps, prop, cycleCalib*java.lang.Math.sqrt((94/132.905))*50, cycleCalib);
 
             try {
-                ArrayList<Double> testTimingsA = waveA.getTimings();
-                ArrayList<Integer> testValuesA = waveA.getWave();
-                timeSum = arrSum(PulseGenerator
-                    .adjacentLengths(mass1, mass2, MRSCycles, prop, timeScale, steps, cycleCalib));
-                start =
-                    PulseGenerator.adjacentLengths(mass1, mass2, MRSCycles, prop, timeScale, steps, cycleCalib)
-                        .get(0);
+                Waveform mainWave = new Waveform(waveA, waveB, false);
 
-                for (int i = 0; i < testTimingsA.size(); i++) {
-                    if (i >= start && i < timeSum) {
-                        writer1.write(testValuesA.get(i) + "\n");
-                    }
-                }
-                writer1.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } catch (SpecViolation e){
-            e.printStackTrace();
-        }
+                try {
+                    ArrayList<Double> testTimingsA = waveA.getTimings();
+                    ArrayList<Integer> testValuesA = waveA.getWave();
+                    timeSum = arrSum(PulseGenerator
+                        .adjacentLengths(mass1, mass2, MRSCycles, prop, timeScale, steps, cycleCalib));
+                    start =
+                        PulseGenerator.adjacentLengths(mass1, mass2, MRSCycles, prop, timeScale, steps, cycleCalib)
+                            .get(0);
 
-    }
-
-
-    /**
-     *
-     * @param arr non null list of integers
-     * @return sum of all elements in arr
-     */
-    private static int arrSum(ArrayList<Integer> arr){
-        int sum = 0;
-
-        for (Integer integer : arr) {
-            sum += integer;
-        }
-
-        return sum;
-    }
-
-
-    /**
-     * @param mass1 The first Mass of Interest that is non-null and greater than 0
-     * @param mass2 The second Mass of Interest that is non-null and greater than 0
-     * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
-     * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
-     * @param timeScale The time window for the wave in nanoseconds
-     * @param steps The number of steps plus 1 sets the number of data points
-     *              and therefore sets the resolution; steps must be greater than zero
-     * @param adjBreak the minimum number of same adjacent values that will not have their
-     *                 time value recorded to be used a point for difference calculation
-     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
-     * @return a list of time differences between adjacency sequences that have adjacent counts
-     *         below the adjBreak threshold
-     */
-    public ArrayList<Double> testFreq(double mass1, double mass2, double MRSCycles, int timeScale, int steps, double prop, int adjBreak, double cycleCalib) {
-
-        double heavyMass, lightMass;
-        ArrayList<Double> Differences = new ArrayList<>();
-
-        if (mass1 > mass2){
-            heavyMass = mass1;
-            lightMass = mass2;
-        }
-        else{
-            heavyMass = mass2;
-            lightMass = mass1;
-        }
-
-        double totalTime = cycleCalib * java.lang.Math.sqrt((heavyMass / 132.905)) * MRSCycles;
-
-        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib);
-        Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime, cycleCalib);
-        try {
-
-            Waveform mainWave = new Waveform(waveA, waveB, false);
-            ArrayList<Integer> bitList = mainWave.getWave();
-            ArrayList<Double> mainTimings = mainWave.getTimings();
-            ArrayList<Double> transferTimes = new ArrayList<>();
-
-            int counter = 1;
-            int value = bitList.get(0);
-            for (int i = 0; i < bitList.size() - 1; i++) {
-
-                if (bitList.get(i + 1) == value) {
-                    counter++;
-
-                } else {
-                    if (counter < adjBreak) {
-                        if (value == 0) {
-                            transferTimes.add(mainTimings.get(i - counter + 1));
-                        } else {
-                            transferTimes.add(mainTimings.get(i - counter));
+                    for (int i = 0; i < testTimingsA.size(); i++) {
+                        if (i >= start && i < timeSum) {
+                            writer1.write(testValuesA.get(i) + "\n");
                         }
                     }
+                    writer1.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } catch (SpecViolation e){
+                e.printStackTrace();
+            }
 
-                    counter = 1;
-                    value = bitList.get(i + 1);
+        }
+
+
+            /**
+             *
+             * @param arr non null list of integers
+             * @return sum of all elements in arr
+             */
+            private static int arrSum(ArrayList<Integer> arr){
+            int sum = 0;
+
+            for (Integer integer : arr) {
+                sum += integer;
+            }
+
+            return sum;
+        }
+
+
+            /**
+             * @param mass1 The first Mass of Interest that is non-null and greater than 0
+             * @param mass2 The second Mass of Interest that is non-null and greater than 0
+             * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
+             * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+             * @param timeScale The time window for the wave in nanoseconds
+             * @param steps The number of steps plus 1 sets the number of data points
+             *              and therefore sets the resolution; steps must be greater than zero
+             * @param adjBreak the minimum number of same adjacent values that will not have their
+             *                 time value recorded to be used a point for difference calculation
+             * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
+             * @return a list of time differences between adjacency sequences that have adjacent counts
+             *         below the adjBreak threshold
+             */
+            public ArrayList<Double> testFreq(double mass1, double mass2, double MRSCycles, int timeScale, int steps, double prop, int adjBreak, double cycleCalib) {
+
+            double heavyMass, lightMass;
+            ArrayList<Double> Differences = new ArrayList<>();
+
+            if (mass1 > mass2){
+                heavyMass = mass1;
+                lightMass = mass2;
+            }
+            else{
+                heavyMass = mass2;
+                lightMass = mass1;
+            }
+
+            double totalTime = cycleCalib * java.lang.Math.sqrt((heavyMass / 132.905)) * MRSCycles;
+
+            Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib);
+            Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime, cycleCalib);
+            try {
+
+                Waveform mainWave = new Waveform(waveA, waveB, false);
+                ArrayList<Integer> bitList = mainWave.getWave();
+                ArrayList<Double> mainTimings = mainWave.getTimings();
+                ArrayList<Double> transferTimes = new ArrayList<>();
+
+                int counter = 1;
+                int value = bitList.get(0);
+                for (int i = 0; i < bitList.size() - 1; i++) {
+
+                    if (bitList.get(i + 1) == value) {
+                        counter++;
+
+                    } else {
+                        if (counter < adjBreak) {
+                            if (value == 0) {
+                                transferTimes.add(mainTimings.get(i - counter + 1));
+                            } else {
+                                transferTimes.add(mainTimings.get(i - counter));
+                            }
+                        }
+
+                        counter = 1;
+                        value = bitList.get(i + 1);
+
+                    }
 
                 }
 
-            }
 
+                for (int i = 0; i < transferTimes.size() - 1; i++) {
+                    Differences.add(transferTimes.get(i + 1) - transferTimes.get(i));
+                }
+            }catch (SpecViolation e){
+                e.printStackTrace();
+            } finally {
 
-            for (int i = 0; i < transferTimes.size() - 1; i++) {
-                Differences.add(transferTimes.get(i + 1) - transferTimes.get(i));
-            }
-        }catch (SpecViolation e){
-            e.printStackTrace();
-        } finally {
-
-            return new ArrayList<>(Differences);
-        }
-    }
-
-
-
-    /**
-     * Writes the number of peaks and total switches between Hi and Lo for the combination Wave
-     * of each mass pair from start Mass to endMass
-     * This is a linear implementation of the scan and has a longer running time
-     * The scan area wil be a triangle of size (endMass-startMass)^2/2
-     * @param startMass The lowest mass for the scan; starting point of scan
-     * @param endMass The last mass for the scan; no data will be taken using larger masses
-     * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
-     * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
-     * @param timeScale The time window for the wave in nanoseconds
-     * @param adjBreak the minimum number of same adjacent values that will not have their
-     *                 time value recorded to be used a point for difference calculation
-     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
-     */
-    public static void graphGenerator(int startMass, int endMass, double MRSCycles, int timeScale, double prop, int adjBreak, double cycleCalib) {
-
-        ArrayList<Integer> Mass1 = new ArrayList<>();
-        ArrayList<Integer> Mass2 = new ArrayList<>();
-        ArrayList<Integer> Peaks = new ArrayList<>();
-        ArrayList<Integer> Switches = new ArrayList<>();
-
-
-        for (int i = startMass; i <= endMass; i++) {
-            for (int j = i; j <= endMass; j++) {
-                int[] temp = PulseGenerator
-                    .pulseScheme(i, j, MRSCycles, prop, PulseGenerator.getSuggestedTimeScale(j,MRSCycles,prop, cycleCalib), PulseGenerator.getSuggestedTimeScale(j,MRSCycles,prop, cycleCalib), adjBreak, cycleCalib);
-                Peaks.add(temp[0]);
-                Switches.add(temp[1]);
-                Mass1.add(i);
-                Mass2.add(j);
+                return new ArrayList<>(Differences);
             }
         }
+
+
+
+            /**
+             * Writes the number of peaks and total switches between Hi and Lo for the combination Wave
+             * of each mass pair from start Mass to endMass
+             * This is a linear implementation of the scan and has a longer running time
+             * The scan area wil be a triangle of size (endMass-startMass)^2/2
+             * @param startMass The lowest mass for the scan; starting point of scan
+             * @param endMass The last mass for the scan; no data will be taken using larger masses
+             * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
+             * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+             * @param timeScale The time window for the wave in nanoseconds
+             * @param adjBreak the minimum number of same adjacent values that will not have their
+             *                 time value recorded to be used a point for difference calculation
+             * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
+             */
+            public static void graphGenerator(int startMass, int endMass, double MRSCycles, int timeScale, double prop, int adjBreak, double cycleCalib) {
+
+            ArrayList<Integer> Mass1 = new ArrayList<>();
+            ArrayList<Integer> Mass2 = new ArrayList<>();
+            ArrayList<Integer> Peaks = new ArrayList<>();
+            ArrayList<Integer> Switches = new ArrayList<>();
+
+
+            for (int i = startMass; i <= endMass; i++) {
+                for (int j = i; j <= endMass; j++) {
+                    int[] temp = PulseGenerator
+                        .pulseScheme(i, j, MRSCycles, prop, PulseGenerator.getSuggestedTimeScale(j,MRSCycles,prop, cycleCalib), PulseGenerator.getSuggestedTimeScale(j,MRSCycles,prop, cycleCalib), adjBreak, cycleCalib);
+                    Peaks.add(temp[0]);
+                    Switches.add(temp[1]);
+                    Mass1.add(i);
+                    Mass2.add(j);
+                }
+            }
             for (int i = 0; i < Peaks.size(); i++) {
                 System.out.println(Mass1.get(i) + "  " + Mass2.get(i) + "    " + Peaks.get(i) + "    " + Switches.get(i) + "\n");
             }
 
+        }
+
+
+            /**
+             * @param MOI1 The first Mass of Interest that is non-null and greater than 0
+             * @param MOI2 The second Mass of Interest that is non-null and greater than 0
+             * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
+             * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+             * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
+             * @return the Normalized On Time for the Mass pair MRS waveform
+             */
+            public static int getNormOnTime(double MOI1, double MOI2, double MRSCycles, double prop, double cycleCalib){
+
+            double heavyMass, lightMass;
+
+            if (MOI1 > MOI2){
+                heavyMass = MOI1;
+                lightMass = MOI2;
+            }
+            else{
+                heavyMass = MOI2;
+                lightMass = MOI1;
+            }
+            return PulseGenerator.pulseScheme(heavyMass, lightMass, MRSCycles, prop, PulseGenerator.getSuggestedTimeScale(heavyMass,MRSCycles,prop, cycleCalib), PulseGenerator.getSuggestedTimeScale(heavyMass,MRSCycles,prop, cycleCalib), 5, cycleCalib)[9];
+        }
+
     }
 
-
-    /**
-     * @param MOI1 The first Mass of Interest that is non-null and greater than 0
-     * @param MOI2 The second Mass of Interest that is non-null and greater than 0
-     * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
-     * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
-     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
-     * @return the Normalized On Time for the Mass pair MRS waveform
-     */
-    public static int getNormOnTime(double MOI1, double MOI2, double MRSCycles, double prop, double cycleCalib){
-
-        double heavyMass, lightMass;
-
-        if (MOI1 > MOI2){
-            heavyMass = MOI1;
-            lightMass = MOI2;
-        }
-        else{
-            heavyMass = MOI2;
-            lightMass = MOI1;
-        }
-        return PulseGenerator.pulseScheme(heavyMass, lightMass, MRSCycles, prop, PulseGenerator.getSuggestedTimeScale(heavyMass,MRSCycles,prop, cycleCalib), PulseGenerator.getSuggestedTimeScale(heavyMass,MRSCycles,prop, cycleCalib), 5, cycleCalib)[9];
-    }
-
-}
