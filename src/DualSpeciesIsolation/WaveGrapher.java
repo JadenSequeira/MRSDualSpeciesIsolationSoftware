@@ -35,8 +35,9 @@ public class WaveGrapher {
             lightMass = Mass1;
         }
 
-        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, Proportion, cycleCalib);
-        Waveform waveB = new Waveform(lightMass, timeScale, steps, Proportion, cycleCalib*java.lang.Math.sqrt((heavyMass/132.905))*MRSCycles, cycleCalib);
+        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, Proportion, cycleCalib,0,0);
+        Waveform waveB = new Waveform(lightMass, timeScale, steps, Proportion, cycleCalib*java.lang.Math.sqrt((heavyMass/132.905))*MRSCycles, cycleCalib,0,0);
+
 
         try {
             Waveform mainWave = new Waveform(waveA, waveB, false);
@@ -81,10 +82,12 @@ public class WaveGrapher {
      * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      * @param IOI Ion of Interest; greater than zero
      */
-    public static void singleIOIPairWaveGrapher(double MOI1, double MOI2, double IOI, int timeScale, int steps, double MRSCycles, double prop, FileWriter writer1, double cycleCalib){
+    public static void singleIOIPairWaveGrapher(double MOI1, double MOI2, double IOI, int timeScale, int steps, double MRSCycles, double prop, FileWriter writer1, double cycleCalib, double startCycle){
         double heavyMass;
         double lightMass;
         double totalTime;
+        double startTime;
+        double delayOverwrite = 0;
 
         if (MOI1 > MOI2){
             heavyMass = MOI1;
@@ -97,10 +100,16 @@ public class WaveGrapher {
 
 
         totalTime = cycleCalib*java.lang.Math.sqrt((heavyMass/132.905))*MRSCycles;
+        startTime =  startCycle*(cycleCalib*java.lang.Math.sqrt((heavyMass/132.905)));
+        double cycleCalibration = cycleCalib*java.lang.Math.sqrt((heavyMass/132.905));
+        if (startCycle != 0){
+            delayOverwrite = 5 * (int) ((((32800) * java.lang.Math.sqrt((heavyMass / 132.905))) -
+                (5 * (int) ((prop * cycleCalibration / 2) / 5) / 2)) / 5);
+        }
 
-        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib);
-        Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime,cycleCalib);
-        Waveform waveIOI = new Waveform(IOI, timeScale, steps, prop, totalTime, cycleCalib);
+        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib, startCycle,0);
+        Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime,cycleCalib, startTime, delayOverwrite);
+        Waveform waveIOI = new Waveform(IOI, timeScale, steps, prop, totalTime, cycleCalib, startTime, delayOverwrite);
 
         try {
 
@@ -176,8 +185,8 @@ public class WaveGrapher {
      * @param writerA writes the adjacent lengths in order of occurrence to a specified file
      * @param IOI Ion of Interest; greater than zero
      */
-    public static void checkIOIAdjLengths(double Mass1, double Mass2, double IOI, int timeScale, int steps, double MRSCycles, double Proportion, FileWriter writerA, double cycleCalib){
-        ArrayList<Integer> lengths = new ArrayList<>(PulseGenerator.adjacentIOILengths(Mass1, Mass2, IOI, MRSCycles, Proportion, timeScale, steps, cycleCalib));
+    public static void checkIOIAdjLengths(double Mass1, double Mass2, double IOI, int timeScale, int steps, double MRSCycles, double Proportion, FileWriter writerA, double cycleCalib, double startCycle){
+        ArrayList<Integer> lengths = new ArrayList<>(PulseGenerator.adjacentIOILengths(Mass1, Mass2, IOI, MRSCycles, Proportion, timeScale, steps, cycleCalib, startCycle));
         try {
             writeLengthsToFile(writerA,lengths);
             writerA.close();
@@ -200,8 +209,8 @@ public class WaveGrapher {
     }
 
 
-    public static void writeMRSdeltaTPairs(double Mass1, double IOI, double MRSCycles, double Proportion, double cycleCalib, FileWriter writerA) throws IOException{
-        ArrayList<List<Integer>> data = PulseGenerator.SingleMRSdeltaTPairs(Mass1,IOI, MRSCycles,Proportion, cycleCalib);
+    public static void writeMRSdeltaTPairs(double Mass1, double IOI, double MRSCycles, double Proportion, double cycleCalib, FileWriter writerA, double startCycle) throws IOException{
+        ArrayList<List<Integer>> data = PulseGenerator.SingleMRSdeltaTPairs(Mass1,IOI, MRSCycles,Proportion, cycleCalib, startCycle);
         int MRSCyc, deltaT;
         writerA.write("MR   Dt\n");
 
@@ -232,8 +241,8 @@ public class WaveGrapher {
             public static void writeValuesOfInterest(double mass1, double mass2, double MRSCycles, int timeScale, int steps, double prop, FileWriter writer1, double cycleCalib){
             int timeSum; //timeSum uses nanoseconds only
             int start;
-            Waveform waveA = new Waveform(mass1, MRSCycles, timeScale, steps, prop, cycleCalib);
-            Waveform waveB = new Waveform(mass2, timeScale, steps, prop, cycleCalib*java.lang.Math.sqrt((94/132.905))*50, cycleCalib);
+            Waveform waveA = new Waveform(mass1, MRSCycles, timeScale, steps, prop, cycleCalib,0,0);
+            Waveform waveB = new Waveform(mass2, timeScale, steps, prop, cycleCalib*java.lang.Math.sqrt((94/132.905))*50, cycleCalib,0,0);
 
             try {
                 Waveform mainWave = new Waveform(waveA, waveB, false);
@@ -309,8 +318,8 @@ public class WaveGrapher {
 
             double totalTime = cycleCalib * java.lang.Math.sqrt((heavyMass / 132.905)) * MRSCycles;
 
-            Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib);
-            Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime, cycleCalib);
+            Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib,0,0);
+            Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime, cycleCalib,0,0);
             try {
 
                 Waveform mainWave = new Waveform(waveA, waveB, false);

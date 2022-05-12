@@ -21,6 +21,13 @@ public class PulseGenerator{
         return (int) (timeOn + timeDelay + (timeOn/MRSCycles));
     }
 
+    public static int getSuggestedTimeScaleShifted(double mass, double MRSCycles, double prop, double cycleCalib){
+
+        double timeOn = cycleCalib*java.lang.Math.sqrt((mass/132.905))*MRSCycles;
+
+        return (int) (timeOn + (timeOn/MRSCycles));
+    }
+
 
     /**
      * @param mass The Mass of Interest that is non-null and greater than 0
@@ -85,8 +92,8 @@ public class PulseGenerator{
 
         totalTime = cycleCalib*java.lang.Math.sqrt((heavyMass/132.905))*MRSCycles;
 
-        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib);
-        Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime, cycleCalib);
+        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib,0,0);
+        Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime, cycleCalib,0,0);
         try {
             Waveform mainWave = new Waveform(waveA, waveB, false);
             ArrayList<Integer> bitList = mainWave.getWave();
@@ -230,8 +237,8 @@ public class PulseGenerator{
 
         totalTime = cycleCalib*java.lang.Math.sqrt((heavyMass/132.905))*MRSCycles;
 
-        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib);
-        Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime,cycleCalib);
+        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib,0,0);
+        Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime,cycleCalib,0,0);
         try{
             Waveform mainWave = new Waveform(waveA, waveB, false);
             ArrayList<Integer> bitList = mainWave.getWave();
@@ -274,12 +281,14 @@ public class PulseGenerator{
      * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      * @return total time when IOI is Lo and combination waveform of MOI 1 and MOI 2 is Hi (in ns)
      */
-    public static int IOIWaveformOnTime( double MOI1, double MOI2, double IOI, double MRSCycles, double prop, int timeScale, int steps, double cycleCalib){
+    public static int IOIWaveformOnTime( double MOI1, double MOI2, double IOI, double MRSCycles, double prop, int timeScale, int steps, double cycleCalib, double startCycle){
 
         int OnTime = 0;
         double heavyMass;
         double lightMass;
         double totalTime;
+        double startTime;
+        double delayOverwrite = 0;
 
         if (MOI1 > MOI2){
             heavyMass = MOI1;
@@ -291,11 +300,17 @@ public class PulseGenerator{
         }
 
 
+        double cycleCalibration = cycleCalib*java.lang.Math.sqrt((heavyMass/132.905));
         totalTime = cycleCalib*java.lang.Math.sqrt((heavyMass/132.905))*MRSCycles;
+        startTime =  startCycle*(cycleCalib*java.lang.Math.sqrt((heavyMass/132.905)));
+        if (startCycle != 0){
+            delayOverwrite = 5 * (int) ((((32800) * java.lang.Math.sqrt((heavyMass / 132.905))) -
+                (5 * (int) ((prop * cycleCalibration / 2) / 5) / 2)) / 5);
+        }
 
-        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib);
-        Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime,cycleCalib);
-        Waveform waveIOI = new Waveform(IOI, timeScale, steps, prop, totalTime, cycleCalib);
+        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib, startCycle,0);
+        Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime,cycleCalib, startTime, delayOverwrite);
+        Waveform waveIOI = new Waveform(IOI, timeScale, steps, prop, totalTime, cycleCalib,startTime, delayOverwrite);
 
         try {
             Waveform mainWave = new Waveform(waveA, waveB, false);
@@ -332,13 +347,16 @@ public class PulseGenerator{
      * @return list of all segment lengths for specialised XOR combination of dual/single
      *         MRS waveform and IOI MRS waveform
      */
-    public static ArrayList<Integer> adjacentIOILengths( double MOI1, double MOI2, double IOI, double MRSCycles, double prop, int timeScale, int steps, double cycleCalib){
+    public static ArrayList<Integer> adjacentIOILengths( double MOI1, double MOI2, double IOI, double MRSCycles, double prop, int timeScale, int steps, double cycleCalib, double startCycle){
 
         double heavyMass;
         double lightMass;
         int counter;
         int value;
         double totalTime;
+        double startTime;
+        double delayOverwrite = 0;
+
 
         ArrayList<Integer> adjCounts = new ArrayList<>();
 
@@ -353,10 +371,16 @@ public class PulseGenerator{
         }
 
         totalTime = cycleCalib*java.lang.Math.sqrt((heavyMass/132.905))*MRSCycles;
+        startTime =  startCycle*(cycleCalib*java.lang.Math.sqrt((heavyMass/132.905)));
+        double cycleCalibration = cycleCalib*java.lang.Math.sqrt((heavyMass/132.905));
+        if (startCycle != 0){
+            delayOverwrite = 5 * (int) ((((32800) * java.lang.Math.sqrt((heavyMass / 132.905))) -
+                (5 * (int) ((prop * cycleCalibration / 2) / 5) / 2)) / 5);
+        }
 
-        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib);
-        Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime,cycleCalib);
-        Waveform waveIOI = new Waveform(IOI, timeScale, steps, prop, totalTime, cycleCalib);
+        Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib, startCycle,0);
+        Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime,cycleCalib, startTime,delayOverwrite);
+        Waveform waveIOI = new Waveform(IOI, timeScale, steps, prop, totalTime, cycleCalib, startTime,delayOverwrite);
 
         try {
             Waveform mainWave = new Waveform(waveA, waveB, false);
@@ -391,19 +415,28 @@ public class PulseGenerator{
 
 
 
-//TODO:Fix + Test
-    public static ArrayList<List<Integer>> SingleMRSdeltaTPairs(double Mass1, double IOI, double MRSCycles, double Proportion, double cycleCalib){
+
+    public static ArrayList<List<Integer>> SingleMRSdeltaTPairs(double Mass1, double IOI, double MRSCycles, double Proportion, double cycleCalib, double startCycle){
 
         ArrayList<List<Integer>> MRSdeltaTPairs = new ArrayList<List<Integer>>();
         int deltaT;
         double time = 0;
         int index = 0;
+        int timeScale = 0;
 
 
-        ArrayList<Double> MRSEnds = new ArrayList<>(getSingleMRSEnds(Mass1,MRSCycles,Proportion, cycleCalib));
-        ArrayList<Integer> adjLengths = new ArrayList<>(adjacentIOILengths(Mass1, Mass1, IOI, MRSCycles, Proportion, getSuggestedTimeScale(Mass1, MRSCycles,
-            Proportion, cycleCalib), getSuggestedTimeScale(Mass1, MRSCycles,
-            Proportion, cycleCalib), cycleCalib));
+        ArrayList<Double> MRSEnds = new ArrayList<>(getSingleMRSEnds(Mass1,MRSCycles,Proportion, cycleCalib, startCycle));
+        if (startCycle != 0) {
+            timeScale += getSuggestedTimeScaleShifted(Mass1, MRSCycles,
+                Proportion, cycleCalib);
+            time += startCycle*(cycleCalib*java.lang.Math.sqrt((Mass1/132.905)));
+        } else{
+            timeScale += getSuggestedTimeScale(Mass1, MRSCycles,
+                Proportion, cycleCalib);
+        }
+        ArrayList<Integer> adjLengths = new ArrayList<>( adjacentIOILengths(Mass1, Mass1, IOI, MRSCycles, Proportion, timeScale
+                    , timeScale, cycleCalib, startCycle));
+
 
         for (int i = 0; i < adjLengths.size(); i += 2){
             time += adjLengths.get(i);
@@ -427,13 +460,15 @@ public class PulseGenerator{
     }
 
 
-    private static ArrayList<Double> getSingleMRSEnds(double Mass1, double MRSCycles, double Proportion, double cycleCalib){
+
+    private static ArrayList<Double> getSingleMRSEnds(double Mass1, double MRSCycles, double Proportion, double cycleCalib, double startCycle){
 
         ArrayList<Double> MRSEnds = new ArrayList<>();
         double time = 0;
         double cycleCalibration = cycleCalib*java.lang.Math.sqrt((Mass1/132.905));
         double timeDelay = 5*(int)((((32800)*java.lang.Math.sqrt((Mass1/132.905))) - (5*(int)((Proportion*cycleCalibration/2)/5)/2))/5);
         time += timeDelay;
+        time += startCycle*(cycleCalib*java.lang.Math.sqrt((Mass1/132.905)));
 
         for(double i = 0.5; i <= MRSCycles; i += 0.5){
 
@@ -445,7 +480,6 @@ public class PulseGenerator{
         return new ArrayList<>(MRSEnds);
 
     }
-
 
 
 
