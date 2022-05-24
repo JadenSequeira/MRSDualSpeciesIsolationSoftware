@@ -3,7 +3,7 @@
   <grid id="27dc6" binding="panel1" default-binding="true" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="715" height="423"/>
+      <xy x="20" y="20" width="715" height="425"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -398,7 +398,7 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <grid id="ffc18" layout-manager="GridLayoutManager" row-count="7" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                  <grid id="ffc18" layout-manager="GridLayoutManager" row-count="8" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="0" left="0" bottom="0" right="0"/>
                     <constraints>
                       <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -462,9 +462,17 @@
                           <text value="Start Cycle"/>
                         </properties>
                       </component>
+                      <component id="8b034" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="For Dual MRS with IOI with non-zero start time"/>
+                        </properties>
+                      </component>
                     </children>
                   </grid>
-                  <grid id="6fa3e" layout-manager="GridLayoutManager" row-count="7" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                  <grid id="6fa3e" layout-manager="GridLayoutManager" row-count="8" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="0" left="0" bottom="0" right="0"/>
                     <constraints>
                       <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -527,6 +535,14 @@
                           </grid>
                         </constraints>
                         <properties/>
+                      </component>
+                      <component id="662c2" class="javax.swing.JCheckBox" binding="ANDComboCheckBox1" default-binding="true">
+                        <constraints>
+                          <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="AND Combo"/>
+                        </properties>
                       </component>
                     </children>
                   </grid>
@@ -754,7 +770,7 @@
                       </component>
                     </children>
                   </grid>
-                  <grid id="32c0e" layout-manager="GridLayoutManager" row-count="7" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                  <grid id="32c0e" layout-manager="GridLayoutManager" row-count="8" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="0" left="0" bottom="0" right="0"/>
                     <constraints>
                       <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -818,6 +834,14 @@
                         </constraints>
                         <properties/>
                       </component>
+                      <component id="f35e2" class="javax.swing.JCheckBox" binding="ANDComboCheckBox" default-binding="true">
+                        <constraints>
+                          <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="AND Combo"/>
+                        </properties>
+                      </component>
                     </children>
                   </grid>
                   <vspacer id="8f56">
@@ -833,7 +857,7 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <grid id="fc17d" layout-manager="GridLayoutManager" row-count="7" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                      <grid id="fc17d" layout-manager="GridLayoutManager" row-count="8" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                         <margin top="0" left="0" bottom="0" right="0"/>
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -895,6 +919,14 @@
                             </constraints>
                             <properties>
                               <text value="Start Cycle"/>
+                            </properties>
+                          </component>
+                          <component id="8daea" class="javax.swing.JLabel">
+                            <constraints>
+                              <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <text value="For Dual MRS with IOI with non-zero start time"/>
                             </properties>
                           </component>
                         </children>
@@ -968,7 +1000,7 @@
                               </component>
                             </children>
                           </grid>
-                          <grid id="61eaf" layout-manager="GridLayoutManager" row-count="7" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                          <grid id="61eaf" layout-manager="GridLayoutManager" row-count="8" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                             <margin top="0" left="0" bottom="0" right="0"/>
                             <constraints>
                               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -1032,6 +1064,14 @@
                                 </constraints>
                                 <properties/>
                               </component>
+                              <component id="ee0c7" class="javax.swing.JCheckBox" binding="ANDComboCheckBox2" default-binding="true">
+                                <constraints>
+                                  <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                                <properties>
+                                  <text value="AND Combo"/>
+                                </properties>
+                              </component>
                             </children>
                           </grid>
                           <vspacer id="fc17">
@@ -1047,7 +1087,7 @@
                             <properties/>
                             <border type="none"/>
                             <children>
-                              <grid id="b0404" layout-manager="GridLayoutManager" row-count="7" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                              <grid id="b0404" layout-manager="GridLayoutManager" row-count="8" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                                 <margin top="0" left="0" bottom="0" right="0"/>
                                 <constraints>
                                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -1109,6 +1149,14 @@
                                     </constraints>
                                     <properties>
                                       <text value="Start Cycle"/>
+                                    </properties>
+                                  </component>
+                                  <component id="76a7e" class="javax.swing.JLabel">
+                                    <constraints>
+                                      <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                    </constraints>
+                                    <properties>
+                                      <text value="For Dual MRS with IOI with non-zero start time"/>
                                     </properties>
                                   </component>
                                 </children>

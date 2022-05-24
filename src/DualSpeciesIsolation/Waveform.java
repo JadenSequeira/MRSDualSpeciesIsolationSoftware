@@ -78,9 +78,9 @@ public class Waveform {
      * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
      * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      */
-    public Waveform(double MOI, double MRSCycles, int timeScale, int steps, double prop, double cycleCalib, double MRSStartCycle, double delayOverwrite){
+    public Waveform(double MOI, double MRSCycles, int timeScale, int steps, double prop, double cycleCalib, double MRSStartCycle){
         timings = new ArrayList<>();
-        Wave = new ArrayList<>(waveGenerator(MOI, MRSCycles, timeScale, steps, prop, cycleCalib, MRSStartCycle, 0, delayOverwrite));
+        Wave = new ArrayList<>(waveGenerator(MOI, MRSCycles, timeScale, steps, prop, cycleCalib, MRSStartCycle, 0));
         Resolution = timings.get(1)-timings.get(0);
     }
 
@@ -94,10 +94,10 @@ public class Waveform {
      * @param timeOn the time the MRS is ON in nanoseconds; greater than 0
      * @param cycleCalibration time for 1 Cs 1333 cycle in ns; greater than zero
      */
-    public Waveform(double MOI, int timeScale, int steps, double prop, double timeOn, double cycleCalibration, double MRSStartTime, double delayOverwrite){
+    public Waveform(double MOI, int timeScale, int steps, double prop, double timeOn, double cycleCalibration, double MRSStartTime){
         timings = new ArrayList<>();
         double MRSCycles = (timeOn/(cycleCalibration*java.lang.Math.sqrt((MOI/132.905))));
-        Wave = new ArrayList<>(waveGenerator(MOI, MRSCycles, timeScale, steps, prop, cycleCalibration, 0, MRSStartTime, delayOverwrite));
+        Wave = new ArrayList<>(waveGenerator(MOI, MRSCycles, timeScale, steps, prop, cycleCalibration, 0, MRSStartTime));
         Resolution = timings.get(1)-timings.get(0);
     }
 
@@ -237,48 +237,74 @@ public class Waveform {
      * @return the list containing the digital signal in 0's and 1's, where each successive element represents the value
      * at a specific time (constant spacing)
      */
-    private ArrayList<Integer> waveGenerator(double MOI, double MRSCycles, double timeScale, double steps, double prop, double cycleCalibrationTime, double startCycle, double startTime, double delayOverwrite){
+    private ArrayList<Integer> waveGenerator(double MOI, double MRSCycles, double timeScale, double steps, double prop, double cycleCalibrationTime, double startCycle, double startTime){
 
         int countera = 0;
         int counterb = 0;
         int counterc = 0;
         int counterd = 0;
+        double tempstate = 0;
 
 
 
         ArrayList<Integer> wave = new ArrayList<>();
         double cycleCalibration = cycleCalibrationTime*java.lang.Math.sqrt((MOI/132.905));
         double timeOn = cycleCalibration*MRSCycles;
-        double start = 0;
-        start += (startCycle * cycleCalibration) + startTime;
-        double timeDelay = 0;
-        Boolean extend = false;
-        if (delayOverwrite == 0) {
-            timeDelay += 5 * (int) ((((32800) * java.lang.Math.sqrt((MOI / 132.905))) -
-                (5 * (int) ((prop * cycleCalibration / 2) / 5) / 2)) / 5);
-        } else{
-            timeDelay += delayOverwrite;
-        }
 
+        Boolean extend = false;
         Boolean prevValue = false;
         double prevState = 0;
+        Boolean tempval = false;
 
+
+        double startB = 0; //For point placement of where TON starts
+        if (startCycle != 0 ){
+            startB += 5 * (int) ((((32800) * java.lang.Math.sqrt((MOI / 132.905))) -
+                (5 * (int) ((prop * cycleCalibration / 2) / 5) / 2) + (startCycle * cycleCalibration)) / 5);
+        }
+        else if (startTime != 0){
+            startB += startTime;
+        } else {
+            startB += 5 * (int) ((((32800) * java.lang.Math.sqrt((MOI / 132.905))) -
+                (5 * (int) ((prop * cycleCalibration / 2) / 5) / 2)) / 5);
+        }
+
+        double startA = 0; //For window start
+        if (startCycle != 0 ){
+            startA += 5 * (int) ((((32800) * java.lang.Math.sqrt((MOI / 132.905))) -
+                (5 * (int) ((prop * cycleCalibration / 2) / 5) / 2) + (startCycle * cycleCalibration)) / 5);
+        }
+        else if (startTime != 0){
+            startA += startTime;
+        } else{
+            startA += 0;
+        }
 
         //TODO: Change previous state
-        if (waveFormula(timeOn+timeDelay+start, MOI, MRSCycles, prop, false, cycleCalibrationTime, start, 0, false).getValue()){
+        if (waveFormula(timeOn + startB, MOI, MRSCycles, prop, false, cycleCalibrationTime, startA, 0, false, startCycle).getValue()){
             extend = true;
         }
 
-        if (start != 0){
-            start += timeDelay;
-        }
-        for(double i = start; i < timeScale + start; i = i + (int)(timeScale/steps)){
+        Boolean a = true;
+
+        for(double i = startA; i < timeScale + startA; i = i + (int)(timeScale/steps)){
             timings.add(i);
+            //if (tempstate != prevState) {
+            //    System.out.println(prevState);
+            //}
+          //  if(tempval != prevValue){
+          //       System.out.println(prevState + "prev: " + prevValue);
+          //  }
+
+            tempval = prevValue;
+            tempstate = prevState;
             if (!extend) {
 
-                ReturnBooleanDouble answer = new ReturnBooleanDouble(waveFormula(i, MOI, MRSCycles, prop, false, cycleCalibrationTime, start, prevState, prevValue));
+                ReturnBooleanDouble answer = new ReturnBooleanDouble(waveFormula(i, MOI, MRSCycles, prop, false, cycleCalibrationTime, startA, prevState, prevValue, startCycle));
                 prevState = answer.getTime();
                 prevValue = answer.getValue();
+
+
                 if (prevValue) {
                     wave.add(1);
                 } else {
@@ -289,9 +315,9 @@ public class Waveform {
             }
             else{
 
-                if (i < timeDelay + timeOn + start || i > timeDelay + timeOn + start + 5*(int)(((1-prop)*cycleCalibration/2)/5)){
+                if (i < timeOn + startB || i > + timeOn + startB + 5*(int)(((1-prop)*cycleCalibration/2)/5)){
 
-                    ReturnBooleanDouble answer1 = new ReturnBooleanDouble(waveFormula(i, MOI, MRSCycles, prop, false, cycleCalibrationTime, start, prevState, prevValue));
+                    ReturnBooleanDouble answer1 = new ReturnBooleanDouble(waveFormula(i, MOI, MRSCycles, prop, false, cycleCalibrationTime, startA, prevState, prevValue, startCycle));
                     prevState = answer1.getTime();
                     prevValue = answer1.getValue();
 
@@ -303,8 +329,8 @@ public class Waveform {
                     counterb++;
 
                 }
-                else if (i > timeDelay + timeOn + start && !waveFormula(i, MOI, MRSCycles, prop, extend, cycleCalibrationTime, start, prevState, prevValue).getValue()){
-                    ReturnBooleanDouble answer2 = new ReturnBooleanDouble(waveFormula(i, MOI, MRSCycles, prop, extend, cycleCalibrationTime, start, prevState, prevValue));
+                else if (i > timeOn + startB && !waveFormula(i, MOI, MRSCycles, prop, extend, cycleCalibrationTime, startA, prevState, prevValue, startCycle).getValue()){
+                    ReturnBooleanDouble answer2 = new ReturnBooleanDouble(waveFormula(i, MOI, MRSCycles, prop, extend, cycleCalibrationTime, startA, prevState, prevValue, startCycle));
                     prevState = answer2.getTime();
                     prevValue = answer2.getValue();
 //                    if (!prevValue){
@@ -315,7 +341,7 @@ public class Waveform {
                     counterc++;
                 }
                 else{
-                    ReturnBooleanDouble answer3 = new ReturnBooleanDouble(waveFormula(i, MOI, MRSCycles, prop, extend, cycleCalibrationTime, start, prevState, prevValue));
+                    ReturnBooleanDouble answer3 = new ReturnBooleanDouble(waveFormula(i, MOI, MRSCycles, prop, extend, cycleCalibrationTime, startA, prevState, prevValue, startCycle));
                     prevState = answer3.getTime();
                     prevValue = answer3.getValue();
                     if (prevValue) {
@@ -328,7 +354,7 @@ public class Waveform {
             }
         }
 
-        System.out.println(countera + " " + counterb + " " + counterc + " " + counterd);
+     //   System.out.println(countera + " " + counterb + " " + counterc + " " + counterd);
 
         return wave;
     }
@@ -342,31 +368,40 @@ public class Waveform {
      * @param cycleCalibrationTime time for 1 Cs 1333 cycle in ns; greater than zero
      * @return the digital value of the wave; true represents Hi and false represents Lo
      */
-    private ReturnBooleanDouble waveFormula(double time, double MOI, double MRSCycles, double prop, Boolean extend, double cycleCalibrationTime, double start, double prevState, Boolean Val){
+    private ReturnBooleanDouble waveFormula(double time, double MOI, double MRSCycles, double prop, Boolean extend, double cycleCalibrationTime, double start, double prevState, Boolean Val, double startCycle){
 
         double timeCounter = 0;
         double cycleCalibration = cycleCalibrationTime*java.lang.Math.sqrt((MOI/132.905));
         double timeOn = cycleCalibration*MRSCycles;
         double timeDelay = 5*(int)((((32800)*java.lang.Math.sqrt((MOI/132.905))) - (5*(int)((prop*cycleCalibration/2)/5)/2))/5);
         ReturnBooleanDouble info = new ReturnBooleanDouble();
+        double startTime = 0;
+
+        if (start == 0){
+            startTime += timeDelay;
+        }
+        else{
+            startTime += start;
+        }
+
 
 
         if (extend){
-            if (time <= timeDelay) {
+            if (time <= startTime) {
             return info;
             }
-            if (time >= timeOn + timeDelay + start + 5*(int)(((1-prop)*cycleCalibration/2)/5)){
-                info.changeBoleanDouble(false,timeOn + timeDelay + start + 5*(int)(((1-prop)*cycleCalibration/2)/5));
+            if (time >= timeOn + startTime + 5*(int)(((1-prop)*cycleCalibration/2)/5)){
+                info.changeBoleanDouble(false,timeOn + startTime + 5*(int)(((1-prop)*cycleCalibration/2)/5)); //TODO: Change PREV Time returns to ensure final edge is met
                 return info;
             }
         }
 
         if (!extend){
-            if (time <= timeDelay){
+            if (time <= startTime){
             return info;
             }
-            if (time > timeOn + start + timeDelay){
-                info.changeBoleanDouble(false,timeOn + start + timeDelay);
+            if (time > timeOn + startTime){
+                info.changeBoleanDouble(false,timeOn + startTime);
                 return info;
             }
         }
@@ -374,7 +409,13 @@ public class Waveform {
 
 
         if (prevState == 0) {
-            timeCounter += timeDelay;
+
+            if (startCycle != 0){
+               timeCounter += 5 * (int) ((((32800) * java.lang.Math.sqrt((MOI / 132.905))) -
+                    (5 * (int) ((prop * cycleCalibration / 2) / 5) / 2) + (startCycle * cycleCalibration)) / 5);
+            } else {
+                timeCounter += timeDelay;
+            }
         }
         else{
             timeCounter = prevState;
@@ -382,7 +423,7 @@ public class Waveform {
 
 
         Boolean changed = false;
-        Boolean state;
+
         while (timeCounter < time){
 
             if (!Val || changed) {
@@ -412,6 +453,7 @@ public class Waveform {
             }
 
         }
+
 
         return info;
     }

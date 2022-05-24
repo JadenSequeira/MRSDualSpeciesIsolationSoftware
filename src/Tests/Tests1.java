@@ -13,22 +13,23 @@ import java.util.List;
 public class Tests1 {
 
 
+
     @Test
     /*
      * Check the overall waveform against the MAc trigger system waveform
      */
-    public static void main(String[] args) {
+    public void ckeckWave(){
 
         //MAc injectionStart = 54.98999 us
 
 
         double firstRise, firstFall, lastFall, temp;
-        Waveform Rb = new Waveform(85, 60.0, 2000000, 2000000, 0.4, 22682.5,0,0);
-        Waveform Cs = new Waveform(133, 200.0, 7000000, 7000000, 0.1, 22682.5,0,0);
-        Waveform K = new Waveform(39, 50.0, 750000, 750000, 0.8, 22682.5,0,0);
-        Waveform Rb2 = new Waveform(85, 30.0, 1000000, 1000000, 0.4, 22682.5,0,0);
-        Waveform Cs2 = new Waveform(133, 30.0, 1500000, 1500000, 0.7, 22682.5,0,0);
-        Waveform K2 = new Waveform(39, 30.0, 750000, 750000, 0.8, 22682.5,0,0);
+        Waveform Rb = new Waveform(85, 60.0, 2000000, 2000000, 0.4, 22682.5,0);
+        Waveform Cs = new Waveform(133, 200.0, 7000000, 7000000, 0.1, 22682.5,0);
+        Waveform K = new Waveform(39, 50.0, 750000, 750000, 0.8, 22682.5,0);
+        Waveform Rb2 = new Waveform(85, 30.0, 1000000, 1000000, 0.4, 22682.5,0);
+        Waveform Cs2 = new Waveform(133, 30.0, 1500000, 1500000, 0.7, 22682.5,0);
+        Waveform K2 = new Waveform(39, 30.0, 750000, 750000, 0.8, 22682.5,0);
 
 
         List<List<Double>> expectedTimings = new ArrayList<>();
@@ -169,7 +170,7 @@ public class Tests1 {
      * Checks the resolution calculation and storage for a waveform
      */
     public void checkResolution(){
-        Waveform Rb = new Waveform(85, 60.0, 2000000, 200000, 0.4, 22682.5,0,0);
+        Waveform Rb = new Waveform(85, 60.0, 2000000, 200000, 0.4, 22682.5,0);
         Assertions.assertEquals(10,Rb.getResolution());
     }
 
@@ -188,8 +189,8 @@ public class Tests1 {
         int temp1 = 0;
         int temp2 = 0;
 
-        Waveform waveA = new Waveform(133, 30.0, 1000000, 1000000, 0.4, 22682.5,0,0);
-        Waveform waveB = new Waveform(39, 1000000, 1000000, 0.4, 22682.5*java.lang.Math.sqrt((133/132.905))*30, 22682.5,0,0);
+        Waveform waveA = new Waveform(133, 30.0, 1000000, 1000000, 0.4, 22682.5,0);
+        Waveform waveB = new Waveform(39, 1000000, 1000000, 0.4, 22682.5*java.lang.Math.sqrt((133/132.905))*30, 22682.5,0);
 
         ArrayList<Double> waveATimings = waveA.getTimings();
         ArrayList<Double> waveBTimings = waveB.getTimings();
@@ -254,7 +255,7 @@ public class Tests1 {
      */
     public void PulseSchemeTest(){
 
-        Waveform waveA = new Waveform(133, 30.0, 1000000, 1000000, 0.4, 22682.5,0,0);
+        Waveform waveA = new Waveform(133, 30.0, 1000000, 1000000, 0.4, 22682.5,0);
         ArrayList<Integer> bitList = waveA.getWave();
 
         int peaks = 0;
@@ -326,7 +327,7 @@ public class Tests1 {
 
         int a = PulseGenerator.IOIWaveformOnTime(Mass1, Mass2, IOI, MRSCycles, proportion, PulseGenerator
             .getSuggestedTimeScale(heavyMass, MRSCycles, proportion, cycleCalib),PulseGenerator
-            .getSuggestedTimeScale(heavyMass, MRSCycles, proportion, cycleCalib), cycleCalib,0);
+            .getSuggestedTimeScale(heavyMass, MRSCycles, proportion, cycleCalib), cycleCalib,0, true);
 
 
         Assertions.assertEquals(0, a);

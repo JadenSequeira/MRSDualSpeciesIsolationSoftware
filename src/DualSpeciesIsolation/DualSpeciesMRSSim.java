@@ -73,6 +73,9 @@ public class DualSpeciesMRSSim extends SwingWorker {
     private JTextField textField39;
     private JTextField textField40;
     private JTextField textField41;
+    private JCheckBox ANDComboCheckBox;
+    private JCheckBox ANDComboCheckBox1;
+    private JCheckBox ANDComboCheckBox2;
 
     public DualSpeciesMRSSim() {
 
@@ -202,7 +205,7 @@ public class DualSpeciesMRSSim extends SwingWorker {
                              IOI = Double.parseDouble(textField38.getText());
                          }
                          if (!textField41.getText().isEmpty()){
-                             startCycle = Double.parseDouble(textField39.getText());
+                             startCycle = Double.parseDouble(textField41.getText());
                          }
 
 
@@ -242,17 +245,37 @@ public class DualSpeciesMRSSim extends SwingWorker {
                                                  PulseGenerator
                                                      .getSuggestedTimeScale(heavyMass, MRSCycles,
                                                          proportion, cycleCalib),
-                                                 MRSCycles, proportion, writerA, cycleCalib, startCycle);
-                                     } else{
-                                         WaveGrapher
-                                             .checkIOIAdjLengths(Mass1, Mass2, IOI, PulseGenerator
-                                                     .getSuggestedTimeScaleShifted(heavyMass, MRSCycles,
-                                                         proportion,
-                                                         cycleCalib),
-                                                 PulseGenerator
-                                                     .getSuggestedTimeScaleShifted(heavyMass, MRSCycles,
-                                                         proportion, cycleCalib),
-                                                 MRSCycles, proportion, writerA, cycleCalib, startCycle);
+                                                 MRSCycles, proportion, writerA, cycleCalib, startCycle, true);
+                                     } else {
+                                         if (ANDComboCheckBox1.isSelected()) {
+                                             WaveGrapher
+                                                 .checkIOIAdjLengths(Mass1, Mass2, IOI,
+                                                     PulseGenerator
+                                                         .getSuggestedTimeScaleShifted(heavyMass,
+                                                             MRSCycles,
+                                                             proportion,
+                                                             cycleCalib),
+                                                     PulseGenerator
+                                                         .getSuggestedTimeScaleShifted(heavyMass,
+                                                             MRSCycles,
+                                                             proportion, cycleCalib),
+                                                     MRSCycles, proportion, writerA, cycleCalib,
+                                                     startCycle, true);
+                                         } else{
+                                             WaveGrapher
+                                                 .checkIOIAdjLengths(Mass1, Mass2, IOI,
+                                                     PulseGenerator
+                                                         .getSuggestedTimeScaleShifted(heavyMass,
+                                                             MRSCycles,
+                                                             proportion,
+                                                             cycleCalib),
+                                                     PulseGenerator
+                                                         .getSuggestedTimeScaleShifted(heavyMass,
+                                                             MRSCycles,
+                                                             proportion, cycleCalib),
+                                                     MRSCycles, proportion, writerA, cycleCalib,
+                                                     startCycle, false);
+                                         }
                                      }
 
                                  }
@@ -405,15 +428,31 @@ public class DualSpeciesMRSSim extends SwingWorker {
                                                         proportion, cycleCalib), PulseGenerator
                                                     .getSuggestedTimeScale(heavyMass, MRSCycles,
                                                         proportion, cycleCalib), MRSCycles,
-                                                proportion, writerA, cycleCalib, startCycle);
+                                                proportion, writerA, cycleCalib, startCycle, true);
                                         } else{
-                                            WaveGrapher.singleIOIPairWaveGrapher(Mass1, Mass2, IOI,
-                                                PulseGenerator
-                                                    .getSuggestedTimeScaleShifted(heavyMass, MRSCycles,
-                                                        proportion, cycleCalib), PulseGenerator
-                                                    .getSuggestedTimeScaleShifted(heavyMass, MRSCycles,
-                                                        proportion, cycleCalib), MRSCycles,
-                                                proportion, writerA, cycleCalib, startCycle);
+                                            if (ANDComboCheckBox.isSelected()){
+                                                WaveGrapher.singleIOIPairWaveGrapher(Mass1, Mass2, IOI,
+                                                    PulseGenerator
+                                                        .getSuggestedTimeScaleShifted(heavyMass, MRSCycles,
+                                                            proportion, cycleCalib), PulseGenerator
+                                                        .getSuggestedTimeScaleShifted(heavyMass, MRSCycles,
+                                                            proportion, cycleCalib), MRSCycles,
+                                                    proportion, writerA, cycleCalib, startCycle, true);
+
+                                            } else {
+                                                WaveGrapher
+                                                    .singleIOIPairWaveGrapher(Mass1, Mass2, IOI,
+                                                        PulseGenerator
+                                                            .getSuggestedTimeScaleShifted(heavyMass,
+                                                                MRSCycles,
+                                                                proportion, cycleCalib),
+                                                        PulseGenerator
+                                                            .getSuggestedTimeScaleShifted(heavyMass,
+                                                                MRSCycles,
+                                                                proportion, cycleCalib), MRSCycles,
+                                                        proportion, writerA, cycleCalib,
+                                                        startCycle, false);
+                                            }
                                         }
 
                                     }
@@ -472,19 +511,38 @@ public class DualSpeciesMRSSim extends SwingWorker {
                                                     proportion, cycleCalib), PulseGenerator
                                                 .getSuggestedTimeScale(heavyMass, MRSCycles,
                                                     proportion, cycleCalib), cycleCalib,
-                                            startCycle) +
+                                            startCycle, true) +
                                         "  "));
                             } else{
-                                textField36.setText((String) (
-                                    PulseGenerator
-                                        .IOIWaveformOnTime(Mass1, Mass2, IOI, MRSCycles, proportion,
-                                            PulseGenerator
-                                                .getSuggestedTimeScaleShifted(heavyMass, MRSCycles,
-                                                    proportion, cycleCalib), PulseGenerator
-                                                .getSuggestedTimeScaleShifted(heavyMass, MRSCycles,
-                                                    proportion, cycleCalib), cycleCalib,
-                                            startCycle) +
-                                        "  "));
+                                if (ANDComboCheckBox2.isSelected()) {
+                                    textField36.setText((String) (
+                                        PulseGenerator
+                                            .IOIWaveformOnTime(Mass1, Mass2, IOI, MRSCycles,
+                                                proportion,
+                                                PulseGenerator
+                                                    .getSuggestedTimeScaleShifted(heavyMass,
+                                                        MRSCycles,
+                                                        proportion, cycleCalib), PulseGenerator
+                                                    .getSuggestedTimeScaleShifted(heavyMass,
+                                                        MRSCycles,
+                                                        proportion, cycleCalib), cycleCalib,
+                                                startCycle, true) +
+                                            "  "));
+                                } else {
+                                    textField36.setText((String) (
+                                        PulseGenerator
+                                            .IOIWaveformOnTime(Mass1, Mass2, IOI, MRSCycles,
+                                                proportion,
+                                                PulseGenerator
+                                                    .getSuggestedTimeScaleShifted(heavyMass,
+                                                        MRSCycles,
+                                                        proportion, cycleCalib), PulseGenerator
+                                                    .getSuggestedTimeScaleShifted(heavyMass,
+                                                        MRSCycles,
+                                                        proportion, cycleCalib), cycleCalib,
+                                                startCycle, false) +
+                                            "  "));
+                                }
                             }
                         }
                         else{
