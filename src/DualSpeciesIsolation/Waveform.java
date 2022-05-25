@@ -3,8 +3,6 @@ package DualSpeciesIsolation;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.System.exit;
-
 
 public class Waveform {
 
@@ -239,13 +237,6 @@ public class Waveform {
      */
     private ArrayList<Integer> waveGenerator(double MOI, double MRSCycles, double timeScale, double steps, double prop, double cycleCalibrationTime, double startCycle, double startTime){
 
-        int countera = 0;
-        int counterb = 0;
-        int counterc = 0;
-        int counterd = 0;
-        double tempstate = 0;
-
-
 
         ArrayList<Integer> wave = new ArrayList<>();
         double cycleCalibration = cycleCalibrationTime*java.lang.Math.sqrt((MOI/132.905));
@@ -254,7 +245,6 @@ public class Waveform {
         Boolean extend = false;
         Boolean prevValue = false;
         double prevState = 0;
-        Boolean tempval = false;
 
 
         double startB = 0; //For point placement of where TON starts
@@ -280,24 +270,14 @@ public class Waveform {
             startA += 0;
         }
 
-        //TODO: Change previous state
+
         if (waveFormula(timeOn + startB, MOI, MRSCycles, prop, false, cycleCalibrationTime, startA, 0, false, startCycle).getValue()){
             extend = true;
         }
 
-        Boolean a = true;
-
         for(double i = startA; i < timeScale + startA; i = i + (int)(timeScale/steps)){
             timings.add(i);
-            //if (tempstate != prevState) {
-            //    System.out.println(prevState);
-            //}
-          //  if(tempval != prevValue){
-          //       System.out.println(prevState + "prev: " + prevValue);
-          //  }
 
-            tempval = prevValue;
-            tempstate = prevState;
             if (!extend) {
 
                 ReturnBooleanDouble answer = new ReturnBooleanDouble(waveFormula(i, MOI, MRSCycles, prop, false, cycleCalibrationTime, startA, prevState, prevValue, startCycle));
@@ -311,7 +291,6 @@ public class Waveform {
                     wave.add(0);
                 }
 
-                countera++;
             }
             else{
 
@@ -326,7 +305,6 @@ public class Waveform {
                     } else {
                         wave.add(0);
                     }
-                    counterb++;
 
                 }
                 else if (i > timeOn + startB && !waveFormula(i, MOI, MRSCycles, prop, extend, cycleCalibrationTime, startA, prevState, prevValue, startCycle).getValue()){
@@ -338,7 +316,6 @@ public class Waveform {
                         wave.add(0);
 //                    }
 
-                    counterc++;
                 }
                 else{
                     ReturnBooleanDouble answer3 = new ReturnBooleanDouble(waveFormula(i, MOI, MRSCycles, prop, extend, cycleCalibrationTime, startA, prevState, prevValue, startCycle));
@@ -349,7 +326,6 @@ public class Waveform {
                     } else {
                         wave.add(0);
                     }
-                    counterd++;
                 }
             }
         }

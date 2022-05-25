@@ -435,24 +435,32 @@ public class PulseGenerator{
 
     public static ArrayList<List<Integer>> SingleMRSdeltaTPairs(double Mass1, double IOI, double MRSCycles, double Proportion, double cycleCalib, double startCycle){
 
-        ArrayList<List<Integer>> MRSdeltaTPairs = new ArrayList<List<Integer>>();
+        ArrayList<List<Integer>> MRSdeltaTPairs = new ArrayList<>();
         int deltaT;
         double time = 0;
         int index = 0;
         int timeScale = 0;
 
 
+        double cycleCalibration = cycleCalib*java.lang.Math.sqrt((Mass1/132.905));
         ArrayList<Double> MRSEnds = new ArrayList<>(getSingleMRSEnds(Mass1,MRSCycles,Proportion, cycleCalib, startCycle));
         if (startCycle != 0) {
             timeScale += getSuggestedTimeScaleShifted(Mass1, MRSCycles,
                 Proportion, cycleCalib);
-            time += startCycle*(cycleCalib*java.lang.Math.sqrt((Mass1/132.905)));
+            time +=  5 * (int) ((((32800) * java.lang.Math.sqrt((Mass1 / 132.905))) -
+                (5 * (int) ((Proportion * cycleCalibration / 2) / 5) / 2)) / 5);
+
+            for (double j = 0.5; j <= startCycle; j += 0.5){
+                time += 5*(int)((Proportion*cycleCalibration/2)/5);
+                time += 5*(int)(((1-Proportion)*cycleCalibration/2)/5);
+            }
+
         } else{
             timeScale += getSuggestedTimeScale(Mass1, MRSCycles,
                 Proportion, cycleCalib);
         }
         ArrayList<Integer> adjLengths = new ArrayList<>( adjacentIOILengths(Mass1, Mass1, IOI, MRSCycles, Proportion, timeScale
-                    , timeScale, cycleCalib, startCycle,true));
+                    , timeScale, cycleCalib, startCycle,false));
 
 
         for (int i = 0; i < adjLengths.size(); i += 2){
@@ -461,10 +469,10 @@ public class PulseGenerator{
             deltaT = adjLengths.get(i+1);
             ArrayList<Integer> temp = new ArrayList<>();
 
-            while (time > MRSEnds.get(index)){
+            while (index < MRSEnds.size() && time > MRSEnds.get(index)){
                 index++;
             }
-            if (time <= MRSEnds.get(index)){
+            if (index < MRSEnds.size() && time <= MRSEnds.get(index)){
                 temp.add((index+1)*10/2);
                 temp.add(deltaT);
                 MRSdeltaTPairs.add(temp);
@@ -484,15 +492,25 @@ public class PulseGenerator{
         double time = 0;
         double cycleCalibration = cycleCalib*java.lang.Math.sqrt((Mass1/132.905));
         double timeDelay = 5*(int)((((32800)*java.lang.Math.sqrt((Mass1/132.905))) - (5*(int)((Proportion*cycleCalibration/2)/5)/2))/5);
-        time += timeDelay;
-        time += startCycle*(cycleCalib*java.lang.Math.sqrt((Mass1/132.905)));
+
+        if(startCycle != 0){
+            time += 5 * (int) ((((32800) * java.lang.Math.sqrt((Mass1 / 132.905))) -
+                (5 * (int) ((Proportion * cycleCalibration / 2) / 5) / 2)
+                + (startCycle * (cycleCalib * java.lang.Math.sqrt((Mass1 / 132.905))))) / 5);
+
+        } else {
+            time += timeDelay;
+        }
 
         for(double i = 0.5; i <= MRSCycles; i += 0.5){
 
             time += 5*(int)((Proportion*cycleCalibration/2)/5);
             time += 5*(int)(((1-Proportion)*cycleCalibration/2)/5);
             MRSEnds.add(time);
+//            System.out.println(time);
         }
+
+
 
         return new ArrayList<>(MRSEnds);
 
@@ -501,6 +519,11 @@ public class PulseGenerator{
 
 
 }
+
+
+
+
+
 
 
 
