@@ -81,6 +81,8 @@ public class WaveGrapher {
      *                not the same instance as writer2 or writer3
      * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      * @param IOI Ion of Interest; greater than zero
+     * @param dualAndComb if waveform is a Dual MRS species combination waveform
+     * @param startCycle MRS start delay - the number of MRS Cycles used to delay the MRS waveform; can not be negative
      */
     public static void singleIOIPairWaveGrapher(double MOI1, double MOI2, double IOI, int timeScale, int steps, double MRSCycles, double prop, FileWriter writer1, double cycleCalib, double startCycle, Boolean dualAndComb){
         double heavyMass;
@@ -112,8 +114,6 @@ public class WaveGrapher {
         Waveform waveIOI = new Waveform(IOI, timeScale, steps, prop, totalTime, cycleCalib, startTime);
 
         try {
-
-            //TODO: For all functions, avoid the AND gate for start combinations once done, all is calibrated
 
 
             Waveform mainWave = new Waveform();
@@ -152,12 +152,6 @@ public class WaveGrapher {
     }
 
 
-
-
-
-
-
-
     /**
      * Writes the lengths of each Hi and Lo segment in order (without the last segment due to resolution extension),
      * to a specified file
@@ -193,6 +187,8 @@ public class WaveGrapher {
      * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      * @param writerA writes the adjacent lengths in order of occurrence to a specified file
      * @param IOI Ion of Interest; greater than zero
+     * @param dualAndCombo if waveform is a Dual MRS species combination waveform
+     * @param startCycle MRS start delay - the number of MRS Cycles used to delay the MRS waveform; can not be negative
      */
     public static void checkIOIAdjLengths(double Mass1, double Mass2, double IOI, int timeScale, int steps, double MRSCycles, double Proportion, FileWriter writerA, double cycleCalib, double startCycle, Boolean dualAndCombo){
         ArrayList<Integer> lengths = new ArrayList<>(PulseGenerator.adjacentIOILengths(Mass1, Mass2, IOI, MRSCycles, Proportion, timeScale, steps, cycleCalib, startCycle, dualAndCombo));
@@ -217,15 +213,53 @@ public class WaveGrapher {
         }
     }
 
+    /**
+     * Writes delta t pairs to a file
+     * @param Mass1 The first Mass of Interest that is non-null and greater than 0
+     * @param Mass2 The second Mass of Interest that is non-null and greater than 0
+     * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
+     * @param Proportion the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+     * @param IOI Ion of Interest; greater than zero
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
+     * @param dualAndComb if waveform is a Dual MRS species combination waveform
+     * @param startCycle MRS start delay - the number of MRS Cycles used to delay the MRS waveform; can not be negative
+     * @param writerA writes lengths to a specified file
+     * @throws IOException if writing to file is interrupted/fails
+     */
+    public static void writeMRSdeltaTPairs(double Mass1, double Mass2, double IOI, double MRSCycles, double Proportion, double cycleCalib, FileWriter writerA, double startCycle, Boolean dualAndComb) throws IOException{
+        ArrayList<List<Integer>> data = PulseGenerator.SingleMRSdeltaTPairs(Mass1, Mass2, IOI, MRSCycles,Proportion, cycleCalib, startCycle, dualAndComb);
+        double heavyMass;
+        double lightMass;
 
-    public static void writeMRSdeltaTPairs(double Mass1, double IOI, double MRSCycles, double Proportion, double cycleCalib, FileWriter writerA, double startCycle) throws IOException{
-        ArrayList<List<Integer>> data = PulseGenerator.SingleMRSdeltaTPairs(Mass1,IOI, MRSCycles,Proportion, cycleCalib, startCycle);
+        if (Mass1 > Mass2){
+            heavyMass = Mass1;
+            lightMass = Mass2;
+        }
+        else{
+            heavyMass = Mass2;
+            lightMass = Mass1;
+        }
+
+        double cycleCalibration1 = cycleCalib*java.lang.Math.sqrt((heavyMass/132.905));
+        double cycleCalibration2 = cycleCalib*java.lang.Math.sqrt((IOI/132.905));
+        double IOIMax = 5*(int)((Proportion*cycleCalibration2/2)/5);
+        double MRSMax = 5*(int)(((1-Proportion)*cycleCalibration1/2)/5);
+        double normFactor;
+
+        if (MRSMax < IOIMax){
+            normFactor = MRSMax;
+        } else{
+            normFactor = IOIMax;
+        }
+
+
+
         int MRSCyc, deltaT;
-        writerA.write("MR   Dt\n");
+        writerA.write("MR   Dt  N%\n");
 
         for(int i = 0; i < data.size(); i++) {
             for (int j = 0; j < data.get(i).size() - 1; j++) {
-                writerA.write(data.get(i).get(j)/10 + "." + data.get(i).get(j) % 10  + "    " + data.get(i).get(j+1) + "\n");
+                writerA.write(data.get(i).get(j)/10 + "." + data.get(i).get(j) % 10  + "    " + data.get(i).get(j+1) + "    " + (int)(100*(((double)data.get(i).get(j+1))/normFactor)) + "." + (int)(1000*(((double)data.get(i).get(j+1))/normFactor)%100) + "\n");
             }
         }
 

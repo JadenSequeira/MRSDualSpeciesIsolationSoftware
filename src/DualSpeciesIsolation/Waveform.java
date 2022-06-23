@@ -75,6 +75,7 @@ public class Waveform {
      *              and therefore sets the resolution; greater than zero
      * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
      * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
+     * @param MRSStartCycle the number of MRS cycles used to delay the start of the MRS waveform; can not be negative
      */
     public Waveform(double MOI, double MRSCycles, int timeScale, int steps, double prop, double cycleCalib, double MRSStartCycle){
         timings = new ArrayList<>();
@@ -91,6 +92,7 @@ public class Waveform {
      * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
      * @param timeOn the time the MRS is ON in nanoseconds; greater than 0
      * @param cycleCalibration time for 1 Cs 1333 cycle in ns; greater than zero
+     * @param MRSStartTime  the start time of the MRS waveform in nanoseconds; can not be negative
      */
     public Waveform(double MOI, int timeScale, int steps, double prop, double timeOn, double cycleCalibration, double MRSStartTime){
         timings = new ArrayList<>();
@@ -232,6 +234,8 @@ public class Waveform {
      *             and therefore sets the resolution; greater than zero
      * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
      * @param cycleCalibrationTime time for 1 Cs 1333 cycle in ns; greater than zero
+     * @param startCycle the number of MRS cycles used to delay the start of the MRS waveform; can not be negative
+     * @param startTime   the start time of the MRS waveform in nanoseconds; can not be negative
      * @return the list containing the digital signal in 0's and 1's, where each successive element represents the value
      * at a specific time (constant spacing)
      */
@@ -342,6 +346,12 @@ public class Waveform {
      * @param MRSCycles Number of MRS Cycles/duty cycles for the wave; non-zero and non-negative, <= 850
      * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
      * @param cycleCalibrationTime time for 1 Cs 1333 cycle in ns; greater than zero
+     * @param startCycle the number of MRS cycles used to delay the start of the MRS waveform; can not be negative
+     * @param extend if the MRS waveform was extended
+     * @param prevState the previous data point time of the MRS waveform in nanoseconds if available,
+     *                  otherwise keep as 0; must not be negative
+     * @param start the start time in nanoseconds of the data window for the MRS Waveform; can not be negative
+     * @param Val the previous data points value (Hi is true or Lo is false)
      * @return the digital value of the wave; true represents Hi and false represents Lo
      */
     private ReturnBooleanDouble waveFormula(double time, double MOI, double MRSCycles, double prop, Boolean extend, double cycleCalibrationTime, double start, double prevState, Boolean Val, double startCycle){
@@ -367,7 +377,7 @@ public class Waveform {
             return info;
             }
             if (time >= timeOn + startTime + 5*(int)(((1-prop)*cycleCalibration/2)/5)){
-                info.changeBoleanDouble(false,timeOn + startTime + 5*(int)(((1-prop)*cycleCalibration/2)/5)); //TODO: Change PREV Time returns to ensure final edge is met
+                info.changeBoleanDouble(false,timeOn + startTime + 5*(int)(((1-prop)*cycleCalibration/2)/5));
                 return info;
             }
         }

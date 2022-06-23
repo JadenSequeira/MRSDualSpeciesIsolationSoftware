@@ -586,19 +586,27 @@ public class DualSpeciesMRSSim extends SwingWorker {
                             }
 
                             double heavyMass;
+                            double lightMass;
 
                             if (Mass1 > Mass2){
                                 heavyMass = Mass1;
+                                lightMass = Mass2;
                             }
                             else{
                                 heavyMass = Mass2;
+                                lightMass = Mass1;
                             }
 
                             if (Mass1 > 0 && Mass2 > 0 && proportion <=1 && proportion >= 0 && MRSCycles > 0 && cycleCalib > 0 && IOI > 0 && startCycle >= 0)  {
                                 try {
                                     FileWriter writerA = new FileWriter(filePath+ ".txt");
-                                    WaveGrapher.writeMRSdeltaTPairs(heavyMass,IOI, MRSCycles,
-                                        proportion, cycleCalib, writerA, startCycle);
+                                    if (ANDComboCheckBox2.isSelected()) {
+                                        WaveGrapher.writeMRSdeltaTPairs(heavyMass, lightMass, IOI, MRSCycles,
+                                            proportion, cycleCalib, writerA, startCycle, true);
+                                    } else{
+                                        WaveGrapher.writeMRSdeltaTPairs(heavyMass, lightMass, IOI, MRSCycles,
+                                            proportion, cycleCalib, writerA, startCycle, false);
+                                    }
 
                                 } catch (IOException p) {
                                     p.printStackTrace();

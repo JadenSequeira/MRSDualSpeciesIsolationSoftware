@@ -21,6 +21,13 @@ public class PulseGenerator{
         return (int) (timeOn + timeDelay + (timeOn/MRSCycles));
     }
 
+    /**
+     * @param mass mass of interest for overall timeScale that is non-null and greater than 0
+     * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
+     * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
+     * @return the suggested timeScale setting for functions using MRS start time delay
+     */
     public static int getSuggestedTimeScaleShifted(double mass, double MRSCycles, double prop, double cycleCalib){
 
         double timeOn = cycleCalib*java.lang.Math.sqrt((mass/132.905))*MRSCycles;
@@ -40,6 +47,23 @@ public class PulseGenerator{
 
         return (int) ((5*((int)(((1-proportion)*cycleCalib*java.lang.Math.sqrt((mass/132.905))/2)/5)) - 1)*(MRSCycles*2));
 
+    }
+
+    /**
+     * @param mass the mass of interes; greater than 0
+     * @param MRSCycles the number of MRS cycles after delay; greater than 0
+     * @param prop the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
+     * @param startCycle the number of MRS Cycles delayed; must be non-negative
+     * @return the correction factor in ns for transferring between MRS modes (Start MRS at 0 or Apply MRS delay)
+     */
+    public static int CorrectionFactor(double mass, double MRSCycles, double prop, double cycleCalib, double startCycle){
+
+        double cycleCalibration = cycleCalib*java.lang.Math.sqrt((mass/132.905));
+        double fromStart = (2*startCycle*(5 * (int) ((prop * cycleCalibration / 2) / 5))) + (2*startCycle*(5 * (int) (((1 - prop) * cycleCalibration / 2) / 5)));
+        double totalOnTime = cycleCalibration*startCycle;
+
+        return (int)(totalOnTime - fromStart);
     }
 
 
@@ -280,6 +304,9 @@ public class PulseGenerator{
      * @param IOI Ion of Interest; greater than zero
      * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
      * @return total time when IOI is Lo and combination waveform of MOI 1 and MOI 2 is Hi (in ns)
+     * @param dualAndComb if waveform is a Dual MRS species combination waveform
+     * @param startCycle MRS start delay - the number of MRS Cycles used to delay the MRS waveform; can not be negative
+     * @return the total on time of the IOI waveform XOR-like combination in nanoseconds
      */
     public static int IOIWaveformOnTime( double MOI1, double MOI2, double IOI, double MRSCycles, double prop, int timeScale, int steps, double cycleCalib, double startCycle, Boolean dualAndComb){
 
@@ -300,13 +327,13 @@ public class PulseGenerator{
         }
 
 
-        //TODO: Change Start times to include delay (+ rounding) and then test
         double cycleCalibration = cycleCalib*java.lang.Math.sqrt((heavyMass/132.905));
         totalTime = cycleCalib*java.lang.Math.sqrt((heavyMass/132.905))*MRSCycles;
         if (startCycle != 0){
         startTime = 5 * (int) ((((32800) * java.lang.Math.sqrt((heavyMass / 132.905))) - (5 * (int) ((prop * cycleCalibration / 2) / 5) / 2)
             + (startCycle*(cycleCalibration))) / 5);
         }
+
 
         Waveform waveA = new Waveform(heavyMass, MRSCycles, timeScale, steps, prop, cycleCalib, startCycle);
         Waveform waveB = new Waveform(lightMass, timeScale, steps, prop, totalTime,cycleCalib, startTime);
@@ -349,6 +376,8 @@ public class PulseGenerator{
      *              and therefore sets the resolution; steps must be greater than zero
      * @param IOI Ion of Interest; greater than zero
      * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
+     * @param dualAndComb if waveform is a Dual MRS species combination waveform
+     * @param startCycle MRS start delay - the number of MRS Cycles used to delay the MRS waveform; can not be negative
      * @return list of all segment lengths for specialised XOR combination of dual/single
      *         MRS waveform and IOI MRS waveform
      */
@@ -431,23 +460,43 @@ public class PulseGenerator{
     }
 
 
-
-
-    public static ArrayList<List<Integer>> SingleMRSdeltaTPairs(double Mass1, double IOI, double MRSCycles, double Proportion, double cycleCalib, double startCycle){
+    /**
+     * @param Mass1 The first Mass of Interest that is non-null and greater than 0
+     * @param Mass2 The second Mass of Interest that is non-null and greater than 0
+     * @param MRSCycles The number of MRSCycles; 0 < MRSCycles <= 850
+     * @param Proportion the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+     * @param IOI Ion of Interest; greater than zero
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
+     * @param dualAndComb if waveform is a Dual MRS species combination waveform
+     * @param startCycle MRS start delay - the number of MRS Cycles used to delay the MRS waveform; can not be negative
+     * @return a list of MRS cycles of the MRS waveform and its corresponding delta t values
+     */
+    public static ArrayList<List<Integer>> SingleMRSdeltaTPairs(double Mass1, double Mass2, double IOI, double MRSCycles, double Proportion, double cycleCalib, double startCycle, Boolean dualAndComb){
 
         ArrayList<List<Integer>> MRSdeltaTPairs = new ArrayList<>();
         int deltaT;
         double time = 0;
         int index = 0;
         int timeScale = 0;
+        double lightMass;
+        double heavyMass;
 
 
-        double cycleCalibration = cycleCalib*java.lang.Math.sqrt((Mass1/132.905));
-        ArrayList<Double> MRSEnds = new ArrayList<>(getSingleMRSEnds(Mass1,MRSCycles,Proportion, cycleCalib, startCycle));
+        if (Mass1 > Mass2){
+            heavyMass = Mass1;
+            lightMass = Mass2;
+        }
+        else{
+            heavyMass = Mass2;
+            lightMass = Mass1;
+        }
+
+        double cycleCalibration = cycleCalib*java.lang.Math.sqrt((heavyMass/132.905));
+        ArrayList<Double> MRSEnds = new ArrayList<>(getSingleMRSEnds(heavyMass,MRSCycles,Proportion, cycleCalib, startCycle));
         if (startCycle != 0) {
-            timeScale += getSuggestedTimeScaleShifted(Mass1, MRSCycles,
+            timeScale += getSuggestedTimeScaleShifted(heavyMass, MRSCycles,
                 Proportion, cycleCalib);
-            time +=  5 * (int) ((((32800) * java.lang.Math.sqrt((Mass1 / 132.905))) -
+            time +=  5 * (int) ((((32800) * java.lang.Math.sqrt((heavyMass / 132.905))) -
                 (5 * (int) ((Proportion * cycleCalibration / 2) / 5) / 2)) / 5);
 
             for (double j = 0.5; j <= startCycle; j += 0.5){
@@ -456,11 +505,22 @@ public class PulseGenerator{
             }
 
         } else{
-            timeScale += getSuggestedTimeScale(Mass1, MRSCycles,
+            timeScale += getSuggestedTimeScale(heavyMass, MRSCycles,
                 Proportion, cycleCalib);
         }
-        ArrayList<Integer> adjLengths = new ArrayList<>( adjacentIOILengths(Mass1, Mass1, IOI, MRSCycles, Proportion, timeScale
-                    , timeScale, cycleCalib, startCycle,false));
+
+        ArrayList<Integer> adjLengths = new ArrayList<>();
+        if (dualAndComb) {
+            adjLengths = new ArrayList<>(
+                adjacentIOILengths(heavyMass, lightMass, IOI, MRSCycles, Proportion, timeScale
+                    , timeScale, cycleCalib, startCycle, true));
+        }
+        else{
+            adjLengths = new ArrayList<>(
+                adjacentIOILengths(heavyMass, lightMass, IOI, MRSCycles, Proportion, timeScale
+                    , timeScale, cycleCalib, startCycle, false));
+
+        }
 
 
         for (int i = 0; i < adjLengths.size(); i += 2){
@@ -485,7 +545,14 @@ public class PulseGenerator{
     }
 
 
-
+    /**
+     * @param Mass1 the heaver mass of interest; must be greater than zero
+     * @param MRSCycles the number of MRS cycles; must be greater than zero
+     * @param Proportion the percentage (in decimal) the duty cycle is OFF, 0 <= prop <= 1
+     * @param cycleCalib time for 1 Cs 1333 cycle in ns; greater than zero
+     * @param startCycle MRS start delay - the number of MRS Cycles used to delay the MRS waveform; can not be negative
+     * @return an arraylist of the timings in nanoseconds of the falling edges of the Mass1 MRS waveform
+     */
     private static ArrayList<Double> getSingleMRSEnds(double Mass1, double MRSCycles, double Proportion, double cycleCalib, double startCycle){
 
         ArrayList<Double> MRSEnds = new ArrayList<>();
@@ -507,7 +574,7 @@ public class PulseGenerator{
             time += 5*(int)((Proportion*cycleCalibration/2)/5);
             time += 5*(int)(((1-Proportion)*cycleCalibration/2)/5);
             MRSEnds.add(time);
-//            System.out.println(time);
+
         }
 
 
